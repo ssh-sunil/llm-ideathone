@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MathScape: The Infinite Equation Garden</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #2c3e50, #3498db);
+      color: white;
+      overflow: hidden;
+    }
+    #container {
+      display: flex;
+      height: 100vh;
+    }
+    #gardenCanvas {
+      background: #1a1a2e;
+      cursor: move;
+    }
+    #sidebar {
+      width: 250px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+    #sidebar h2 {
+      margin-top: 0;
+      color: #ffd700;
+    }
+    .codex-item {
+      margin: 10px 0;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+    }
+    #modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(26, 26, 46, 0.9);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      z-index: 1000;
+      max-width: 400px;
+      width: 90%;
+    }
+    #modal input {
+      padding: 10px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+      width: 200px;
+    }
+    #modal button {
+      padding: 10px 20px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    #modal button:hover {
+      background: #45a049;
+    }
+    #overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <canvas id="gardenCanvas" width="800" height="600"></canvas>
+    <div id="sidebar">
+      <h2>Math Codex</h2>
+      <div id="codex">
+        <div class="codex-item">Linear Equations - Unlocked</div>
+        <div class="codex-item" id="geometry">Geometry - Locked</div>
+      </div>
+    </div>
+  </div>
+  <div id="overlay"></div>
+  <div id="modal">
+    <h3 id="problemTitle">Solve the Equation</h3>
+    <p id="problemText"></p>
+    <input type="number" id="answer" placeholder="Enter your answer">
+    <br>
+    <button onclick="submitAnswer()">Submit</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gardenCanvas');
+    const ctx = canvas.getContext('2d');
+    const sidebar = document.getElementById('sidebar');
+    const modal = document.getElementById('modal');
+    const overlay = document.getElementById('overlay');
+    const problemTitle = document.getElementById('problemTitle');
+    const problemText = document.getElementById('problemText');
+    const answerInput = document.getElementById('answer');
+
+    // Canvas dimensions match container size
+    canvas.width = window.innerWidth - 250;
+    canvas.height = window.innerHeight;
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth - 250;
+      canvas.height = window.innerHeight;
+      drawGarden();
+    });
+
+    // Garden state
+    let garden = {
+      plants: [],
+      withered: [],
+      offsetX: 0,
+      offsetY: 0,
+      dragging: false,
+      startX: 0,
+      startY: 0
+    };
+    let currentProblem = null;
+    let solvedCount = 0;
+
+    // Math problems database
+    const problems = [
+      {
+        id: 0,
+        title: "Linear Equation",
+        text: "Solve for x: \( 2x + 3 = 11 \)",
+        answer: 4,
+        type: "linear",
+        x: 100,
+        y: 100,
+        solved: false
+      },
+      {
+        id: 1,
+        title: "Linear Equation",
+        text: "Solve for x: \( 3x - 5 = 10 \)",
+        answer: 5,
+        type: "linear",
+        x: 200,
+        y: 200,
+        solved: false
+      },
+      {
+        id: 2,
+        title: "Geometry",
+        text: "Find the area of a triangle with base 6 and height 4.",
+        answer: 12,
+        type: "geometry",
+        x: 300,
+        y: 150,
+        solved: false,
+        locked: true
+      }
+    ];
+
+    // Initialize garden with problem nodes
+    problems.forEach(p => {
+      if (!p.locked) {
+        garden.plants.push({
+          x: p.x,
+          y: p.y,
+          type: 'bud',
+          problemId: p.id
+        });
+      }
+    });
+
+    // Draw garden
+    function drawGarden() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Draw background terrain with surreal colors
+      ctx.fillStyle = 'rgb(30, 30, 50)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawTerrain();
+      // Draw plants and withered areas
+      garden.withered.forEach(w => drawPlant(w.x, w.y, 'withered'));
+      garden.plants.forEach(p => drawPlant(p.x + garden.offsetX, p.y + garden.offsetY, p.type));
+    }
+
+    function drawTerrain() {
+      // Simple procedural terrain using lines with surreal colors
+      ctx.strokeStyle = 'rgba(100, 50, 150, 0.5)';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 10; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, i * 100 + garden.offsetY % 100);
+        for (let x = 0; x < canvas.width; x += 50) {
+          let y = i * 100 + Math.sin((x + garden.offsetX) * 0.01 + i) * 30 + garden.offsetY % 100;
+          ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+
+    function drawPlant(x, y, type) {
+      ctx.save();
+      ctx.translate(x, y);
+      if (type === 'bud') {
+        ctx.fillStyle = 'rgb(255, 100, 100)';
+        ctx.beginPath();
+        ctx.arc(0, 0, 10, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (type === 'linear') {
+        ctx.fillStyle = 'rgb(100, 255, 100)';
+        ctx.beginPath();
+        ctx.moveTo(0, -20);
+        ctx.lineTo(10, 20);
+        ctx.lineTo(-10, 20);
+        ctx.closePath();
+        ctx.fill();
+      } else if (type === 'geometry') {
+        ctx.fillStyle = 'rgb(100, 200, 255)';
+        ctx.beginPath();
+        ctx.rect(-15, -15, 30, 30);
+        ctx.fill();
+      } else if (type === 'withered') {
+        ctx.fillStyle = 'rgb(80, 80, 80)';
+        ctx.beginPath();
+        ctx.arc(0, 0, 8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // Mouse and keyboard interaction
+    canvas.addEventListener('mousedown', (e) => {
+      garden.dragging = true;
+      garden.startX = e.clientX;
+      garden.startY = e.clientY;
+    });
+    canvas.addEventListener('mousemove', (e) => {
+      if (garden.dragging) {
+        let dx = e.clientX - garden.startX;
+        let dy = e.clientY - garden.startY;
+        garden.offsetX += dx;
+        garden.offsetY += dy;
+        garden.startX = e.clientX;
+        garden.startY = e.clientY;
+        drawGarden();
+      }
+    });
+    canvas.addEventListener('mouseup', () => {
+      garden.dragging = false;
+    });
+    canvas.addEventListener('click', (e) => {
+      let rect = canvas.getBoundingClientRect();
+      let x = e.clientX - rect.left - garden.offsetX;
+      let y = e.clientY - rect.top - garden.offsetY;
+      checkPlantClick(x, y);
+    });
+    window.addEventListener('keydown', (e) => {
+      if (modal.style.display === 'block') return;
+      let speed = 20;
+      if (e.key === 'ArrowUp') garden.offsetY += speed;
+      else if (e.key === 'ArrowDown') garden.offsetY -= speed;
+      else if (e.key === 'ArrowLeft') garden.offsetX += speed;
+      else if (e.key === 'ArrowRight') garden.offsetX -= speed;
+      drawGarden();
+    });
+
+    function checkPlantClick(x, y) {
+      for (let plant of garden.plants) {
+        let dist = Math.sqrt((plant.x - x) ** 2 + (plant.y - y) ** 2);
+        if (dist < 15 && plant.type === 'bud') {
+          let problem = problems.find(p => p.id === plant.problemId);
+          if (problem) {
+            openProblemModal(problem);
+            break;
+          }
+        }
+      }
+    }
+
+    function openProblemModal(problem) {
+      currentProblem = problem;
+      problemTitle.textContent = problem.title;
+      problemText.textContent = problem.text;
+      answerInput.value = '';
+      modal.style.display = 'block';
+      overlay.style.display = 'block';
+    }
+
+    function submitAnswer() {
+      let answer = parseFloat(answerInput.value);
+      if (answer === currentProblem.answer) {
+        solvedCount++;
+        currentProblem.solved = true;
+        // Update garden
+        let plant = garden.plants.find(p => p.problemId === currentProblem.id);
+        if (plant) {
+          plant.type = currentProblem.type;
+        }
+        // Unlock new concepts
+        if (solvedCount >= 2) {
+          unlockGeometry();
+        }
+        closeModal();
+        drawGarden();
+      } else {
+        // Add withered area
+        garden.withered.push({
+          x: garden.plants.find(p => p.problemId === currentProblem.id).x + garden.offsetX,
+          y: garden.plants.find(p => p.problemId === currentProblem.id).y + garden.offsetY
+        });
+        closeModal();
+        drawGarden();
+        alert("Incorrect. A part of your garden has withered. Try again!");
+      }
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+      overlay.style.display = 'none';
+      currentProblem = null;
+    }
+
+    function unlockGeometry() {
+      let geoProblem = problems.find(p => p.type === 'geometry');
+      if (!geoProblem.solved && geoProblem.locked) {
+        geoProblem.locked = false;
+        garden.plants.push({
+          x: geoProblem.x,
+          y: geoProblem.y,
+          type: 'bud',
+          problemId: geoProblem.id
+        });
+        document.getElementById('geometry').textContent = 'Geometry - Unlocked';
+      }
+    }
+
+    // Initial draw
+    drawGarden();
+  </script>
+</body>
+</html>

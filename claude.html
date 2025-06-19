@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematical Pet Evolution Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .creature-display {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #creatureCanvas {
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            background: linear-gradient(45deg, #e3f2fd, #f3e5f5);
+            cursor: pointer;
+        }
+
+        .controls {
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .control-group h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .control-row label {
+            min-width: 80px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .control-row input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .control-row input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .creature-stats {
+            background: #e8f5e8;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .creature-stats h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding: 5px 0;
+            border-bottom: 1px solid #c8e6c9;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .function-display {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧮 Mathematical Pet Evolution Simulator</h1>
+            <p>Create and evolve digital creatures using mathematical functions!</p>
+        </div>
+
+        <div class="main-content">
+            <div class="creature-display">
+                <canvas id="creatureCanvas" width="600" height="500"></canvas>
+                <div class="creature-stats">
+                    <h3>📊 Creature Statistics</h3>
+                    <div class="stat-item">
+                        <span>Health:</span>
+                        <span id="healthStat">100%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Speed:</span>
+                        <span id="speedStat">Medium</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Size:</span>
+                        <span id="sizeStat">Normal</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Beauty:</span>
+                        <span id="beautyStat">⭐⭐⭐</span>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="randomizeCreature()">🎲 Randomize</button>
+                    <button class="btn btn-secondary" onclick="saveCreature()">💾 Save</button>
+                    <button class="btn btn-secondary" onclick="loadCreature()">📁 Load</button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <h3>🏗️ Body Shape (Quadratic Function)</h3>
+                    <div class="control-row">
+                        <label>a:</label>
+                        <input type="number" id="quadA" value="0.02" step="0.01" min="-1" max="1">
+                    </div>
+                    <div class="control-row">
+                        <label>b:</label>
+                        <input type="number" id="quadB" value="0" step="0.01" min="-2" max="2">
+                    </div>
+                    <div class="control-row">
+                        <label>c:</label>
+                        <input type="number" id="quadC" value="0" step="1" min="-100" max="100">
+                    </div>
+                    <div class="function-display">
+                        Body: y = <span id="bodyFunction">0.02x² + 0x + 0</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🚶 Movement (Trigonometric Function)</h3>
+                    <div class="control-row">
+                        <label>Amplitude:</label>
+                        <input type="number" id="trigAmp" value="50" step="5" min="10" max="100">
+                    </div>
+                    <div class="control-row">
+                        <label>Frequency:</label>
+                        <input type="number" id="trigFreq" value="2" step="0.1" min="0.1" max="5">
+                    </div>
+                    <div class="control-row">
+                        <label>Phase:</label>
+                        <input type="number" id="trigPhase" value="0" step="0.1" min="0" max="6.28">
+                    </div>
+                    <div class="function-display">
+                        Movement: y = <span id="movementFunction">50 × sin(2t + 0)</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>📏 Growth (Exponential Function)</h3>
+                    <div class="control-row">
+                        <label>Base:</label>
+                        <input type="number" id="expBase" value="1.01" step="0.001" min="0.99" max="1.05">
+                    </div>
+                    <div class="control-row">
+                        <label>Scale:</label>
+                        <input type="number" id="expScale" value="1" step="0.1" min="0.5" max="2">
+                    </div>
+                    <div class="function-display">
+                        Growth: size = <span id="growthFunction">1 × 1.01^t</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🎨 Color (Linear Function)</h3>
+                    <div class="control-row">
+                        <label>Hue Rate:</label>
+                        <input type="number" id="colorRate" value="2" step="0.5" min="0.1" max="10">
+                    </div>
+                    <div class="control-row">
+                        <label>Brightness:</label>
+                        <input type="number" id="colorBright" value="70" step="5" min="30" max="90">
+                    </div>
+                    <div class="function-display">
+                        Color: hue = <span id="colorFunction">2t % 360</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class MathematicalCreature {
+            constructor() {
+                this.canvas = document.getElementById('creatureCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.time = 0;
+                this.animationId = null;
+                
+                // Mathematical parameters
+                this.quadA = 0.02;
+                this.quadB = 0;
+                this.quadC = 0;
+                this.trigAmp = 50;
+                this.trigFreq = 2;
+                this.trigPhase = 0;
+                this.expBase = 1.01;
+                this.expScale = 1;
+                this.colorRate = 2;
+                this.colorBright = 70;
+                
+                this.setupEventListeners();
+                this.startAnimation();
+            }
+
+            setupEventListeners() {
+                const inputs = [
+                    'quadA', 'quadB', 'quadC',
+                    'trigAmp', 'trigFreq', 'trigPhase',
+                    'expBase', 'expScale',
+                    'colorRate', 'colorBright'
+                ];
+
+                inputs.forEach(id => {
+                    const element = document.getElementById(id);
+                    element.addEventListener('input', () => {
+                        this[id] = parseFloat(element.value);
+                        this.updateFunctionDisplays();
+                        this.updateStats();
+                    });
+                });
+
+                this.updateFunctionDisplays();
+                this.updateStats();
+            }
+
+            updateFunctionDisplays() {
+                document.getElementById('bodyFunction').textContent = 
+                    `${this.quadA}x² + ${this.quadB}x + ${this.quadC}`;
+                
+                document.getElementById('movementFunction').textContent = 
+                    `${this.trigAmp} × sin(${this.trigFreq}t + ${this.trigPhase.toFixed(1)})`;
+                
+                document.getElementById('growthFunction').textContent = 
+                    `${this.expScale} × ${this.expBase}^t`;
+                
+                document.getElementById('colorFunction').textContent = 
+                    `${this.colorRate}t % 360`;
+            }
+
+            updateStats() {
+                // Calculate creature statistics based on mathematical functions
+                const health = Math.max(0, Math.min(100, 100 - Math.abs(this.quadA - 0.02) * 1000));
+                const speed = this.trigFreq < 1 ? 'Slow' : this.trigFreq > 3 ? 'Fast' : 'Medium';
+                const size = this.expScale < 0.8 ? 'Small' : this.expScale > 1.5 ? 'Large' : 'Normal';
+                const beautyScore = Math.floor((this.trigAmp / 20) + (this.colorBright / 30));
+                const beauty = '⭐'.repeat(Math.max(1, Math.min(5, beautyScore)));
+
+                document.getElementById('healthStat').textContent = `${health.toFixed(0)}%`;
+                document.getElementById('speedStat').textContent = speed;
+                document.getElementById('sizeStat').textContent = size;
+                document.getElementById('beautyStat').textContent = beauty;
+            }
+
+            getBodyShape(x, centerX, centerY) {
+                // Quadratic function for body shape
+                const relativeX = x - centerX;
+                return centerY + this.quadA * relativeX * relativeX + this.quadB * relativeX + this.quadC;
+            }
+
+            getCurrentSize() {
+                // Exponential growth function
+                return this.expScale * Math.pow(this.expBase, this.time * 0.01);
+            }
+
+            getCurrentPosition() {
+                // Trigonometric movement function
+                const baseX = this.canvas.width / 2;
+                const offsetX = this.trigAmp * Math.sin(this.trigFreq * this.time * 0.01 + this.trigPhase);
+                return { x: baseX + offsetX, y: this.canvas.height / 2 };
+            }
+
+            getCurrentColor() {
+                // Linear color function
+                const hue = (this.colorRate * this.time * 0.1) % 360;
+                return `hsl(${hue}, 70%, ${this.colorBright}%)`;
+            }
+
+            drawCreature() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                const pos = this.getCurrentPosition();
+                const size = this.getCurrentSize();
+                const color = this.getCurrentColor();
+                
+                this.ctx.fillStyle = color;
+                this.ctx.strokeStyle = '#333';
+                this.ctx.lineWidth = 2;
+
+                // Draw creature body using quadratic function
+                this.ctx.beginPath();
+                const bodyWidth = 100 * size;
+                const bodyHeight = 80 * size;
+                
+                for (let i = 0; i <= bodyWidth; i += 2) {
+                    const x = pos.x - bodyWidth/2 + i;
+                    const y = this.getBodyShape(i - bodyWidth/2, 0, pos.y - bodyHeight/2);
+                    
+                    if (i === 0) {
+                        this.ctx.moveTo(x, y);
+                    } else {
+                        this.ctx.lineTo(x, y);
+                    }
+                }
+                
+                // Complete the body shape
+                for (let i = bodyWidth; i >= 0; i -= 2) {
+                    const x = pos.x - bodyWidth/2 + i;
+                    const y = this.getBodyShape(i - bodyWidth/2, 0, pos.y + bodyHeight/2);
+                    this.ctx.lineTo(x, y);
+                }
+                
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.stroke();
+
+                // Draw eyes
+                this.ctx.fillStyle = '#fff';
+                const eyeSize = 8 * size;
+                this.ctx.fillRect(pos.x - 20 * size, pos.y - 20 * size, eyeSize, eyeSize);
+                this.ctx.fillRect(pos.x + 12 * size, pos.y - 20 * size, eyeSize, eyeSize);
+                
+                this.ctx.fillStyle = '#000';
+                this.ctx.fillRect(pos.x - 18 * size, pos.y - 18 * size, 4 * size, 4 * size);
+                this.ctx.fillRect(pos.x + 14 * size, pos.y - 18 * size, 4 * size, 4 * size);
+
+                // Draw mathematical function overlay
+                this.drawMathOverlay();
+            }
+
+            drawMathOverlay() {
+                // Draw coordinate system
+                this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                this.ctx.lineWidth = 1;
+                
+                // Grid lines
+                for (let i = 0; i <= this.canvas.width; i += 50) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(i, 0);
+                    this.ctx.lineTo(i, this.canvas.height);
+                    this.ctx.stroke();
+                }
+                
+                for (let i = 0; i <= this.canvas.height; i += 50) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, i);
+                    this.ctx.lineTo(this.canvas.width, i);
+                    this.ctx.stroke();
+                }
+            }
+
+            animate() {
+                this.time++;
+                this.drawCreature();
+                this.animationId = requestAnimationFrame(() => this.animate());
+            }
+
+            startAnimation() {
+                this.animate();
+            }
+
+            stopAnimation() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+            }
+
+            randomize() {
+                document.getElementById('quadA').value = (Math.random() - 0.5) * 0.1;
+                document.getElementById('quadB').value = (Math.random() - 0.5) * 2;
+                document.getElementById('quadC').value = (Math.random() - 0.5) * 100;
+                document.getElementById('trigAmp').value = 20 + Math.random() * 60;
+                document.getElementById('trigFreq').value = 0.5 + Math.random() * 4;
+                document.getElementById('trigPhase').value = Math.random() * 6.28;
+                document.getElementById('expBase').value = 0.99 + Math.random() * 0.06;
+                document.getElementById('expScale').value = 0.5 + Math.random() * 1.5;
+                document.getElementById('colorRate').value = 1 + Math.random() * 8;
+                document.getElementById('colorBright').value = 40 + Math.random() * 40;
+
+                // Trigger input events
+                document.querySelectorAll('input').forEach(input => {
+                    input.dispatchEvent(new Event('input'));
+                });
+            }
+
+            save() {
+                const data = {
+                    quadA: this.quadA,
+                    quadB: this.quadB,
+                    quadC: this.quadC,
+                    trigAmp: this.trigAmp,
+                    trigFreq: this.trigFreq,
+                    trigPhase: this.trigPhase,
+                    expBase: this.expBase,
+                    expScale: this.expScale,
+                    colorRate: this.colorRate,
+                    colorBright: this.colorBright
+                };
+                
+                localStorage.setItem('mathCreature', JSON.stringify(data));
+                alert('🎉 Creature saved successfully!');
+            }
+
+            load() {
+                const data = localStorage.getItem('mathCreature');
+                if (data) {
+                    const creature = JSON.parse(data);
+                    Object.keys(creature).forEach(key => {
+                        document.getElementById(key).value = creature[key];
+                        document.getElementById(key).dispatchEvent(new Event('input'));
+                    });
+                    alert('📁 Creature loaded successfully!');
+                } else {
+                    alert('⚠️ No saved creature found!');
+                }
+            }
+        }
+
+        // Initialize the simulator
+        let creature;
+        
+        window.onload = function() {
+            creature = new MathematicalCreature();
+        };
+
+        function randomizeCreature() {
+            creature.randomize();
+        }
+
+        function saveCreature() {
+            creature.save();
+        }
+
+        function loadCreature() {
+            creature.load();
+        }
+    </script>
+</body>
+</html>

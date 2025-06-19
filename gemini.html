@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Geometer's Lockbox v2.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script>
+    <style>
+      :root {
+        --bg-color: #0a0c10;
+        --primary-glow: #00e5ff;
+        --secondary-glow: #ff00e0;
+        --danger-glow: #ff4444;
+        --grid-color: rgba(0, 229, 255, 0.1);
+        --text-color: #c9d1d9;
+        --solved-glow: #00ff88;
+        --font-family: "Consolas", "Monaco", monospace;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: var(--font-family);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      main {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      canvas {
+        display: block;
+        box-shadow: 0 0 40px rgba(0, 229, 255, 0.2);
+        border: 1px solid var(--grid-color);
+      }
+
+      #ui-container {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.6);
+        padding: 15px 25px;
+        border-radius: 8px;
+        border: 1px solid var(--grid-color);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 80%;
+        max-width: 600px;
+        backdrop-filter: blur(8px);
+        transition: opacity 0.3s ease;
+      }
+
+      .control-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .control-row label {
+        font-size: 16px;
+        color: var(--primary-glow);
+        min-width: 80px;
+        text-align: right;
+      }
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 4px;
+        background: var(--grid-color);
+        outline: none;
+        border-radius: 2px;
+        transition: background 0.2s ease;
+      }
+      input[type="range"]:hover {
+        background: rgba(0, 229, 255, 0.2);
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        background: var(--primary-glow);
+        cursor: pointer;
+        border-radius: 50%;
+        box-shadow: 0 0 10px var(--primary-glow);
+        transition: transform 0.2s ease;
+      }
+      input[type="range"]::-webkit-slider-thumb:active {
+        transform: scale(1.2);
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        background: var(--primary-glow);
+        cursor: pointer;
+        border-radius: 50%;
+        border: none;
+        box-shadow: 0 0 10px var(--primary-glow);
+      }
+
+      #top-bar {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+      }
+
+      #nav-container {
+        display: flex;
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 5px;
+        border-radius: 8px;
+        border: 1px solid var(--grid-color);
+      }
+
+      .nav-button {
+        background: none;
+        border: 1px solid transparent;
+        color: var(--text-color);
+        padding: 8px 16px;
+        font-family: var(--font-family);
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-radius: 5px;
+      }
+
+      .nav-button:hover {
+        background: var(--grid-color);
+        color: var(--primary-glow);
+      }
+
+      .nav-button.active {
+        background: var(--primary-glow);
+        color: var(--bg-color);
+        box-shadow: 0 0 15px var(--primary-glow);
+      }
+
+      #text-overlay {
+        text-align: center;
+        pointer-events: none;
+      }
+
+      #title {
+        font-size: 22px;
+        color: var(--primary-glow);
+        text-shadow: 0 0 5px var(--primary-glow);
+      }
+
+      #instructions {
+        font-size: 14px;
+        margin-top: 5px;
+        color: var(--text-color);
+        max-width: 600px;
+      }
+
+      #system-log {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        font-size: 12px;
+        color: var(--text-color);
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      .solved-flash {
+        animation: flash 0.5s ease-out;
+      }
+
+      @keyframes flash {
+        0% {
+          box-shadow: 0 0 40px rgba(0, 229, 255, 0.2),
+            inset 0 0 0px var(--solved-glow);
+        }
+        50% {
+          box-shadow: 0 0 80px var(--solved-glow),
+            inset 0 0 100px var(--solved-glow);
+        }
+        100% {
+          box-shadow: 0 0 40px rgba(0, 229, 255, 0.2),
+            inset 0 0 0px var(--solved-glow);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main></main>
+
+    <div id="top-bar">
+      <div id="nav-container">
+        <button id="nav-linear" class="nav-button">Lock 1</button>
+        <button id="nav-transform" class="nav-button">Lock 2</button>
+        <button id="nav-parabolic" class="nav-button">Lock 3</button>
+      </div>
+      <div id="text-overlay">
+        <div id="title"></div>
+        <div id="instructions"></div>
+      </div>
+    </div>
+
+    <div id="ui-container"></div>
+    <div id="system-log"></div>
+
+    <script>
+      // --- GLOBAL SETUP ---
+      let canvas;
+      let currentLock;
+      const locks = {};
+      const systemLog = document.getElementById("system-log");
+
+      function setup() {
+        const canvasContainer = document.querySelector("main");
+        const w = Math.min(window.innerWidth * 0.9, 1200);
+        const h = Math.min(window.innerHeight * 0.7, 800);
+        canvas = createCanvas(w, h);
+        canvas.parent(canvasContainer);
+        canvas.elt.oncontextmenu = () => false; // Disable right-click menu
+
+        // Initialize all lock objects
+        locks.linear = new LinearLock();
+        locks.transform = new TransformLock();
+        locks.parabolic = new ParabolicLock();
+
+        setupNavigation();
+        switchRoom("linear");
+      }
+
+      function draw() {
+        background(getComputedStyle(document.documentElement).getPropertyValue("--bg-color"));
+        drawGrid();
+        if (currentLock) {
+          currentLock.update();
+          currentLock.draw();
+        }
+      }
+
+      function windowResized() {
+        const w = Math.min(window.innerWidth * 0.9, 1200);
+        const h = Math.min(window.innerHeight * 0.7, 800);
+        resizeCanvas(w, h);
+        // Re-initialize locks with new dimensions
+        Object.values(locks).forEach((lock) => lock.init());
+      }
+
+      // --- UI & NAVIGATION ---
+      function setupNavigation() {
+        document.getElementById("nav-linear").onclick = () => switchRoom("linear");
+        document.getElementById("nav-transform").onclick = () => switchRoom("transform");
+        document.getElementById("nav-parabolic").onclick = () => switchRoom("parabolic");
+      }
+
+      function switchRoom(roomName) {
+        if (currentLock) currentLock.deactivate();
+        currentLock = locks[roomName];
+        currentLock.activate();
+
+        document.querySelectorAll(".nav-button").forEach((btn) => {
+          btn.classList.toggle("active", btn.id === `nav-${roomName}`);
+        });
+      }
+
+      function logToSystem(message) {
+        systemLog.innerHTML = `> ${message}`;
+      }
+
+      // --- EVENT HANDLERS ---
+      function mousePressed() {
+        if (currentLock && currentLock.handleMousePressed) {
+          currentLock.handleMousePressed();
+        }
+      }
+      function mouseDragged() {
+        if (currentLock && currentLock.handleMouseDragged) {
+          currentLock.handleMouseDragged();
+        }
+      }
+      function mouseReleased() {
+        if (currentLock && currentLock.handleMouseReleased) {
+          currentLock.handleMouseReleased();
+        }
+      }
+
+      // --- HELPER FUNCTIONS ---
+      function drawGrid() {
+        stroke(getComputedStyle(document.documentElement).getPropertyValue("--grid-color"));
+        strokeWeight(1);
+        for (let x = 0; x < width; x += 40) line(x, 0, x, height);
+        for (let y = 0; y < height; y += 40) line(0, y, width, y);
+      }
+
+      // --- BASE LOCK CLASS ---
+      class Lock {
+        constructor() {
+          this.solved = false;
+          this.uiContainer = document.getElementById("ui-container");
+          this.titleEl = document.getElementById("title");
+          this.instructionsEl = document.getElementById("instructions");
+          this.init();
+        }
+
+        init() {} // To be overridden by subclasses for setup
+        update() {} // To be overridden for per-frame logic
+        draw() {} // To be overridden for drawing
+        activate() {
+          this.reset();
+          this.createUI();
+          this.updateText();
+        }
+        deactivate() {
+          this.uiContainer.innerHTML = "";
+        }
+        reset() {
+          this.solved = false;
+          this.init();
+        }
+        createUI() {} // To be overridden
+        updateText() {} // To be overridden
+
+        handleSolved() {
+          if (!this.solved) {
+            this.solved = true;
+            logToSystem(`Lock ${this.constructor.name} sequence... UNLOCKED`);
+            document.querySelector("canvas").classList.add("solved-flash");
+            setTimeout(() => {
+              document.querySelector("canvas").classList.remove("solved-flash");
+            }, 500);
+          }
+        }
+      }
+
+      // --- LOCK 1: LINEAR LOCK ---
+      class LinearLock extends Lock {
+        init() {
+          this.p1 = createVector(-width / 4, -height / 6);
+          this.p2 = createVector(width / 3, height / 4);
+          this.barrier = {
+            p1: createVector(0, height / 2),
+            p2: createVector(width / 5, -height / 3),
+          };
+          this.m = 0.5;
+          this.b = 0;
+          this.tolerance = 5;
+          this.isColliding = false;
+        }
+
+        update() {
+          // Check for collision with barrier
+          const lineStart = createVector(-width / 2, -(this.m * -width / 2 + this.b));
+          const lineEnd = createVector(width / 2, -(this.m * width / 2 + this.b));
+          this.isColliding = this.checkLineSegmentIntersection(
+            lineStart,
+            lineEnd,
+            this.barrier.p1,
+            this.barrier.p2
+          );
+
+          // Check for solution
+          const dist1 = abs(this.m * this.p1.x - this.p1.y + this.b) / sqrt(this.m * this.m + 1);
+          const dist2 = abs(this.m * this.p2.x - this.p2.y + this.b) / sqrt(this.m * this.m + 1);
+          if (dist1 < this.tolerance && dist2 < this.tolerance && !this.isColliding) {
+            this.handleSolved();
+          } else {
+            this.solved = false;
+          }
+        }
+
+        draw() {
+          push();
+          translate(width / 2, height / 2);
+
+          // Draw barrier
+          strokeWeight(this.isColliding ? 4 : 2);
+          stroke(getComputedStyle(document.documentElement).getPropertyValue("--danger-glow"));
+          line(this.barrier.p1.x, -this.barrier.p1.y, this.barrier.p2.x, -this.barrier.p2.y);
+
+          // Draw line
+          strokeWeight(this.solved ? 4 : 2);
+          stroke(this.solved ? getComputedStyle(document.documentElement).getPropertyValue("--solved-glow") : getComputedStyle(document.documentElement).getPropertyValue("--primary-glow"));
+          let x1 = -width / 2;
+          let y1 = this.m * x1 + this.b;
+          let x2 = width / 2;
+          let y2 = this.m * x2 + this.b;
+          line(x1, -y1, x2, -y2);
+
+          // Draw points
+          noStroke();
+          fill(getComputedStyle(document.documentElement).getPropertyValue("--secondary-glow"));
+          ellipse(this.p1.x, -this.p1.y, 20, 20);
+          ellipse(this.p2.x, -this.p2.y, 20, 20);
+          pop();
+        }
+
+        createUI() {
+          this.uiContainer.innerHTML = `
+            <div class="control-row">
+              <label for="m">Slope (m)</label>
+              <input type="range" id="m" min="-2" max="2" step="0.01" value="${this.m}">
+            </div>
+            <div class="control-row">
+              <label for="b">Y-Int (b)</label>
+              <input type="range" id="b" min="-${height / 2}" max="${height / 2}" step="1" value="${this.b}">
+            </div>
+          `;
+          document.getElementById("m").oninput = (e) => (this.m = parseFloat(e.target.value));
+          document.getElementById("b").oninput = (e) => (this.b = parseFloat(e.target.value));
+        }
+
+        updateText() {
+          this.titleEl.innerText = "Lock 1: The Linear Aligner";
+          this.instructionsEl.innerText = "Align the beam with both nodes, avoiding the security barrier.";
+        }
+
+        checkLineSegmentIntersection(p1, p2, p3, p4) {
+          const den = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+          if (den === 0) return false;
+          const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / den;
+          const u = -((p1.x - p2.x) * (p1.y - p3.y) - (p1.y - p2.y) * (p1.x - p3.x)) / den;
+          return t > 0 && t < 1 && u > 0 && u < 1;
+        }
+      }
+
+      // --- LOCK 2: TRANSFORMATION LOCK ---
+      class TransformLock extends Lock {
+        init() {
+          this.keyShape = [
+            createVector(0, -40),
+            createVector(40, 0),
+            createVector(0, 40),
+            createVector(-20, 0),
+          ];
+          this.keyholeShape = [
+            createVector(width / 4, -height / 4 + 40),
+            createVector(width / 4 - 40, -height / 4),
+            createVector(width / 4, -height / 4 - 40),
+            createVector(width / 4 + 20, -height / 4),
+          ];
+          this.position = createVector(-width / 4, 0);
+          this.rotation = 0;
+          this.isDragging = false;
+          this.dragMode = "translate";
+          this.tolerance = 15;
+        }
+
+        update() {
+          let totalDistance = 0;
+          for (let i = 0; i < this.keyShape.length; i++) {
+            let worldVertex = p5.Vector.add(this.keyShape[i].copy().rotate(this.rotation), this.position);
+            totalDistance += worldVertex.dist(this.keyholeShape[i]);
+          }
+          if (totalDistance < this.tolerance) {
+            this.handleSolved();
+          } else {
+            this.solved = false;
+          }
+        }
+
+        draw() {
+          push();
+          translate(width / 2, height / 2);
+
+          // Draw Keyhole
+          stroke(getComputedStyle(document.documentElement).getPropertyValue("--secondary-glow"));
+          strokeWeight(this.solved ? 4 : 3);
+          noFill();
+          if (this.solved) stroke(getComputedStyle(document.documentElement).getPropertyValue("--solved-glow"));
+          beginShape();
+          for (let v of this.keyholeShape) vertex(v.x, v.y);
+          endShape(CLOSE);
+
+          // Draw Key
+          push();
+          translate(this.position.x, this.position.y);
+          rotate(this.rotation);
+          stroke(getComputedStyle(document.documentElement).getPropertyValue("--primary-glow"));
+          strokeWeight(2);
+          fill(getComputedStyle(document.documentElement).getPropertyValue("--grid-color"));
+          beginShape();
+          for (let v of this.keyShape) vertex(v.x, v.y);
+          endShape(CLOSE);
+
+          // Draw interaction hint
+          if (this.isDragging) {
+            noFill();
+            stroke(getComputedStyle(document.documentElement).getPropertyValue("--primary-glow"), 100);
+            if (this.dragMode === "rotate") {
+              ellipse(0, 0, 100, 100);
+              line(0, 0, 50, 0);
+            } else {
+              line(-20, 0, 20, 0);
+              line(0, -20, 0, 20);
+            }
+          }
+          pop();
+          pop();
+        }
+
+        createUI() {
+          this.uiContainer.innerHTML = "";
+        }
+        updateText() {
+          this.titleEl.innerText = "Lock 2: The Transformation Key";
+          this.instructionsEl.innerText = "Drag to move. Hold SHIFT and drag to rotate. Right-click to reflect.";
+        }
+
+        handleMousePressed() {
+          if (mouseButton === RIGHT) {
+            for (let v of this.keyShape) v.x *= -1;
+            return;
+          }
+          let mouseVec = createVector(mouseX - width / 2, mouseY - height / 2);
+          if (mouseVec.dist(this.position) < 60) {
+            this.isDragging = true;
+            this.dragMode = keyIsDown(SHIFT) ? "rotate" : "translate";
+            this.dragOffset = p5.Vector.sub(this.position, mouseVec);
+            this.initialAngle = atan2(mouseVec.y - this.position.y, mouseVec.x - this.position.x);
+            this.initialRotation = this.rotation;
+          }
+        }
+        handleMouseDragged() {
+          if (!this.isDragging) return;
+          let mouseVec = createVector(mouseX - width / 2, mouseY - height / 2);
+          if (this.dragMode === "translate") {
+            this.position = p5.Vector.add(mouseVec, this.dragOffset);
+          } else {
+            let currentAngle = atan2(mouseVec.y - this.position.y, mouseVec.x - this.position.x);
+            this.rotation = this.initialRotation + (currentAngle - this.initialAngle);
+          }
+        }
+        handleMouseReleased() {
+          this.isDragging = false;
+        }
+      }
+
+      // --- LOCK 3: PARABOLIC LOCK ---
+      class ParabolicLock extends Lock {
+        init() {
+          this.a = 0.005;
+          this.h = 0;
+          this.k = height / 4;
+          this.signalAngle = 0; // In degrees
+          this.signals = [-width / 4, -width / 8, 0, width / 8, width / 4];
+          this.tolerance = 8;
+        }
+
+        update() {
+          const focalLength = 1 / (4 * this.a);
+          const focalPoint = createVector(this.h, -this.k + focalLength);
+          let hits = 0;
+          for (let signalX of this.signals) {
+            const parabolaY = this.a * (signalX - this.h) * (signalX - this.h) - this.k;
+            const incoming = createVector(0, 1).rotate(radians(this.signalAngle));
+            const tangentSlope = 2 * this.a * (signalX - this.h);
+            const normal = createVector(-tangentSlope, 1).normalize();
+            const reflection = incoming.copy().reflect(normal);
+            const distToFocal = p5.Vector.dist(createVector(signalX, parabolaY), focalPoint);
+            const projectedPoint = p5.Vector.add(createVector(signalX, parabolaY), reflection.mult(distToFocal));
+            if (projectedPoint.dist(focalPoint) < this.tolerance) {
+              hits++;
+            }
+          }
+          if (hits === this.signals.length) {
+            this.handleSolved();
+          } else {
+            this.solved = false;
+          }
+        }
+
+        draw() {
+          push();
+          translate(width / 2, height / 2);
+
+          const focalLength = 1 / (4 * this.a);
+          const focalPoint = createVector(this.h, -this.k + focalLength);
+
+          // Draw focal point
+          noStroke();
+          fill(getComputedStyle(document.documentElement).getPropertyValue("--secondary-glow"));
+          ellipse(focalPoint.x, focalPoint.y, 20, 20);
+
+          // Draw parabola
+          noFill();
+          strokeWeight(2);
+          stroke(this.solved ? getComputedStyle(document.documentElement).getPropertyValue("--solved-glow") : getComputedStyle(document.documentElement).getPropertyValue("--primary-glow"));
+          beginShape();
+          for (let x = -width / 2; x <= width / 2; x++) {
+            vertex(x, this.a * (x - this.h) * (x - this.h) - this.k);
+          }
+          endShape();
+
+          // Draw signals and reflections
+          for (let signalX of this.signals) {
+            const incoming = createVector(0, 1).rotate(radians(this.signalAngle));
+            const startY = -height / 2;
+            const startX = signalX - incoming.x * (height / 2);
+            const parabolaY = this.a * (signalX - this.h) * (signalX - this.h) - this.k;
+
+            stroke(getComputedStyle(document.documentElement).getPropertyValue("--primary-glow"), 150);
+            strokeWeight(1);
+            line(startX, startY, signalX, parabolaY);
+
+            const tangentSlope = 2 * this.a * (signalX - this.h);
+            const normal = createVector(-tangentSlope, 1).normalize();
+            const reflection = incoming.copy().reflect(normal);
+
+            const distToFocal = p5.Vector.dist(createVector(signalX, parabolaY), focalPoint);
+            const projectedPoint = p5.Vector.add(createVector(signalX, parabolaY), reflection.copy().mult(distToFocal));
+
+            if (projectedPoint.dist(focalPoint) < this.tolerance) {
+              stroke(getComputedStyle(document.documentElement).getPropertyValue("--solved-glow"));
+              strokeWeight(1.5);
+              line(signalX, parabolaY, focalPoint.x, focalPoint.y);
+            } else {
+              stroke(getComputedStyle(document.documentElement).getPropertyValue("--primary-glow"));
+              strokeWeight(1);
+              line(signalX, parabolaY, signalX + reflection.x * width, parabolaY + reflection.y * width);
+            }
+          }
+          pop();
+        }
+
+        createUI() {
+          this.uiContainer.innerHTML = `
+            <div class="control-row">
+              <label for="a">Dish Focus (a)</label>
+              <input type="range" id="a" min="0.001" max="0.02" step="0.0001" value="${this.a}">
+            </div>
+            <div class="control-row">
+              <label for="h">H-Shift (h)</label>
+              <input type="range" id="h" min="-${width / 2}" max="${width / 2}" step="1" value="${this.h}">
+            </div>
+            <div class="control-row">
+              <label for="k">V-Shift (k)</label>
+              <input type="range" id="k" min="-${height / 2}" max="${height / 2}" step="1" value="${this.k}">
+            </div>
+            <div class="control-row">
+              <label for="angle">Signal Angle</label>
+              <input type="range" id="angle" min="-30" max="30" step="1" value="${this.signalAngle}">
+            </div>
+          `;
+          document.getElementById("a").oninput = (e) => (this.a = parseFloat(e.target.value));
+          document.getElementById("h").oninput = (e) => (this.h = parseFloat(e.target.value));
+          document.getElementById("k").oninput = (e) => (this.k = parseFloat(e.target.value));
+          document.getElementById("angle").oninput = (e) => (this.signalAngle = parseFloat(e.target.value));
+        }
+
+        updateText() {
+          this.titleEl.innerText = "Lock 3: The Parabolic Receiver";
+          this.instructionsEl.innerText = "Shape and position the dish to focus all incoming signals onto the receiver node.";
+        }
+      }
+    </script>
+  </body>
+</html>

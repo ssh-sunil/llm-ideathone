@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Concept Collider</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+    <style>
+        body { 
+            background: #0f0f0f; 
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        #controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        input, button {
+            background: #222;
+            border: 1px solid #444;
+            color: #0ff;
+            padding: 8px;
+            margin: 5px;
+            border-radius: 4px;
+        }
+        button:hover { background: #333; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <input id="concept1" placeholder="First concept" value="quantum physics">
+        <input id="concept2" placeholder="Second concept" value="medieval poetry">
+        <button onclick="collide()">COLLIDE!</button>
+        <button onclick="chaosMode()">CHAOS MODE</button>
+        <div id="metaphor" style="margin-top:10px;color:#0ff;"></div>
+    </div>
+    <script>
+        // 1. Knowledge Graph (Compressed Base64 Version)
+        const encodedGraph = 'eyJxdWFudHVtIHBoeXNpY3MiOlsid2F2ZSBmdW5jdGlvbiIsInN1cGVycG9zaXRpb24iLCJlbnRhbmdsZW1lbnQiLCJlbmVyZ3kgcXVhbnRpemF0aW9uIl0sIm1lZGlldmFsIHBvZXRyeSI6WyJzb25uZXQiLCJhbGxlZ29yeSIsImNvdXJ0bHkgbG92ZSIsImhlcm9pYyBlcGljIl0sImJsb2NrY2hhaW4iOlsiZGVjZW50cmFsaXplZCIsImNvbnNlbnN1cyIsImhhc2ggZnVuY3Rpb24iXSwiYmVlaGl2ZSI6WyJjb2xsZWN0aXZlIGludGVsbGlnZW5jZSIsInN3YXJtIiwiaGV4YWdvbmFsIHN0cnVjdHVyZSJdfQ==';
+        const knowledgeGraph = JSON.parse(atob(encodedGraph));
+
+        // 2. Metaphor Engine (Client-side TF.js)
+        const metaphorModel = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/model.json');
+        
+        // 3. Generative Art Config
+        let canvas, particles = [], connections = [];
+
+        // 4. Core Collision Logic
+        function findDeepLinks(c1, c2) {
+            const links = new Set();
+            [c1, c2].forEach(concept => {
+                knowledgeGraph[concept]?.forEach(term => {
+                    if(term.includes(' ')) links.add(term);
+                    Object.entries(knowledgeGraph).forEach(([k,v]) => {
+                        if(v.includes(term) && k !== c1 && k !== c2) links.add(k);
+                    });
+                });
+            });
+            return Array.from(links).slice(0, 7);
+        }
+
+        // 5. Chaotic Visualization Engine
+        function setup() {
+            canvas = createCanvas(windowWidth, windowHeight);
+            canvas.position(0,0);
+            noStroke();
+        }
+
+        function drawMindMap(links) {
+            background(0, 50);
+            particles = [];
+            connections = [];
+            
+            // Create concept particles
+            const c1 = new Particle(
+                width/4, height/2, 
+                document.getElementById('concept1').value, 
+                color(0, 255, 255)
+            );
+            
+            const c2 = new Particle(
+                3*width/4, height/2, 
+                document.getElementById('concept2').value, 
+                color(255, 0, 255)
+            );
+            
+            // Create link particles
+            links.forEach((link, i) => {
+                const angle = map(i, 0, links.length, -PI/2, PI/2);
+                const x = width/2 + cos(angle) * 200;
+                const y = height/2 + sin(angle) * 200;
+                particles.push(new Particle(x, y, link, color(255, 255, 0)));
+                
+                // Create connections
+                connections.push({a: c1, b: particles[i]});
+                connections.push({a: c2, b: particles[i]});
+            });
+        }
+
+        // 6. Particle System
+        class Particle {
+            constructor(x, y, label, col) {
+                this.pos = createVector(x, y);
+                this.label = label;
+                this.col = col;
+                this.vel = p5.Vector.random2D().mult(0.5);
+            }
+
+            update() {
+                this.pos.add(this.vel);
+                if(this.pos.x < 0 || this.pos.x > width) this.vel.x *= -1;
+                if(this.pos.y < 0 || this.pos.y > height) this.vel.y *= -1;
+            }
+
+            show() {
+                fill(this.col);
+                ellipse(this.pos.x, this.pos.y, 20, 20);
+                fill(255);
+                textAlign(CENTER, CENTER);
+                text(this.label, this.pos.x, this.pos.y);
+            }
+        }
+
+        // 7. Animation Loop
+        function draw() {
+            background(0, 5);
+            particles.forEach(p => {
+                p.update();
+                p.show();
+            });
+            
+            connections.forEach(conn => {
+                stroke(255, 100);
+                line(conn.a.pos.x, conn.a.pos.y, conn.b.pos.x, conn.b.pos.y);
+            });
+        }
+
+        // 8. Main Collision Handler
+        async function collide() {
+            const c1 = document.getElementById('concept1').value.toLowerCase();
+            const c2 = document.getElementById('concept2').value.toLowerCase();
+            
+            const links = findDeepLinks(c1, c2);
+            drawMindMap(links);
+            
+            // Generate metaphor using TF.js
+            const metaphor = await generateMetaphor(c1, c2);
+            document.getElementById('metaphor').innerHTML = `✨ "${metaphor}"`;
+        }
+
+        // 9. AI Metaphor Generator (Simplified)
+        async function generateMetaphor(a, b) {
+            const metaphors = [
+                `${a} is like ${b} in its core essence of`,
+                `The dance between ${a} and ${b} reveals`,
+                `Both share the fundamental principle of`
+            ];
+            
+            // Real implementation would use TF.js for text generation
+            return metaphors[floor(random(metaphors.length))] + ' ' +
+                knowledgeGraph[a]?.[0] + ' meeting ' + 
+                knowledgeGraph[b]?.[0];
+        }
+
+        // 10. Chaos Mode Activator
+        function chaosMode() {
+            const concepts = Object.keys(knowledgeGraph);
+            document.getElementById('concept1').value = random(concepts);
+            document.getElementById('concept2').value = random(concepts);
+            collide();
+        }
+
+        // Init
+        collide(); // First collision
+    </script>
+</body>
+</html>
