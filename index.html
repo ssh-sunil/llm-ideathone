@@ -210,7 +210,14 @@
         .deepseek .model-icon { background: linear-gradient(45deg, #4ecdc4, #26d0ce); }
         .gemini .model-icon { background: linear-gradient(45deg, #45b7d1, #2196f3); }
         .grok .model-icon { background: linear-gradient(45deg, #96ceb4, #52c41a); }
-
+        .model-card.o4mini {
+            border-color: #ff9500;
+            background: linear-gradient(135deg, #fff 0%, #fff8f0 100%);
+        }
+        
+        .o4mini .model-icon { 
+            background: linear-gradient(45deg, #ff9500, #ffb347); 
+        }
         .model-name {
             font-size: 1.5rem;
             font-weight: 700;
@@ -374,7 +381,7 @@
             <p class="models-subtitle">Click on each card to explore their innovative educational app ideas!</p>
             
             <div class="models-grid">
-                <div class="model-card claude" onclick="window.open('claude.html', '_blank')">
+                <div class="model-card claude" onclick="window.open('claude.html')">
                     <div class="model-icon">C</div>
                     <h3 class="model-name">Claude</h3>
                     <p class="model-description">
@@ -385,7 +392,7 @@
                     </a>
                 </div>
 
-                <div class="model-card deepseek" onclick="window.open('deepseek.html', '_blank')">
+                <div class="model-card deepseek" onclick="window.open('deepseek.html')">
                     <div class="model-icon">D</div>
                     <h3 class="model-name">DeepSeek</h3>
                     <p class="model-description">
@@ -396,7 +403,7 @@
                     </a>
                 </div>
 
-                <div class="model-card gemini" onclick="window.open('gemini.html', '_blank')">
+                <div class="model-card gemini" onclick="window.open('gemini.html')">
                     <div class="model-icon">G</div>
                     <h3 class="model-name">Gemini</h3>
                     <p class="model-description">
@@ -407,13 +414,23 @@
                     </a>
                 </div>
 
-                <div class="model-card grok" onclick="window.open('grok.html', '_blank')">
+                <div class="model-card grok" onclick="window.open('grok.html')">
                     <div class="model-icon">X</div>
                     <h3 class="model-name">Grok</h3>
                     <p class="model-description">
                         X's witty and innovative AI brings a fresh perspective to making learning fun and engaging.
                     </p>
                     <a href="grok.html" class="view-idea-btn">
+                        <i class="fas fa-lightbulb"></i> View Idea
+                    </a>
+                </div>
+                <div class="model-card o4mini" onclick="window.open('o4mini.html')">
+                    <div class="model-icon">O</div>
+                    <h3 class="model-name">o4-mini</h3>
+                    <p class="model-description">
+                        OpenAI's efficient reasoning model combines smart problem-solving with educational innovation.
+                    </p>
+                    <a href="o4mini.html" class="view-idea-btn">
                         <i class="fas fa-lightbulb"></i> View Idea
                     </a>
                 </div>
@@ -439,6 +456,10 @@
                 <div class="stat-item">
                     <div class="stat-number">1</div>
                     <div class="stat-label">Amazing Ideathon</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">AI Models Competing</div>
                 </div>
             </div>
         </div>
