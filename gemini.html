@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The Geometer's Lockbox v2.0</title>
+    <title>Geometer's Lockbox [Signature Edition]</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script>
     <style>
       :root {
@@ -14,9 +14,9 @@
         --grid-color: rgba(0, 229, 255, 0.1);
         --text-color: #c9d1d9;
         --solved-glow: #00ff88;
+        --locked-color: #444;
         --font-family: "Consolas", "Monaco", monospace;
       }
-
       html,
       body {
         margin: 0;
@@ -30,18 +30,110 @@
         align-items: center;
         height: 100vh;
       }
-
       main {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        position: relative;
       }
-
       canvas {
         display: block;
         box-shadow: 0 0 40px rgba(0, 229, 255, 0.2);
         border: 1px solid var(--grid-color);
+        transition: opacity 0.5s ease;
       }
-
+      #intro-overlay {
+        position: absolute;
+        inset: 0;
+        background: var(--bg-color);
+        z-index: 100;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.5em;
+        color: var(--solved-glow);
+      }
+      .blinking-cursor {
+        animation: blink 1s step-end infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+      #ui-wrapper {
+        opacity: 1;
+        transition: opacity 0.5s ease;
+      }
+      #top-bar {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        z-index: 10;
+      }
+      #nav-container {
+        display: flex;
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 5px;
+        border-radius: 8px;
+        border: 1px solid var(--grid-color);
+      }
+      .nav-button {
+        background: none;
+        border: 1px solid transparent;
+        color: var(--text-color);
+        padding: 8px 16px;
+        font-family: var(--font-family);
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-radius: 5px;
+      }
+      .nav-button[data-status="locked"] {
+        color: var(--locked-color);
+        cursor: not-allowed;
+      }
+      .nav-button[data-status="active"] {
+        background: var(--primary-glow);
+        color: var(--bg-color);
+        box-shadow: 0 0 15px var(--primary-glow);
+      }
+      .nav-button[data-status="solved"] {
+        background: var(--solved-glow);
+        color: var(--bg-color);
+        border-color: var(--solved-glow);
+      }
+      #text-overlay {
+        text-align: center;
+        pointer-events: none;
+        animation: fadeIn 0.5s ease-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      #title {
+        font-size: 22px;
+        color: var(--primary-glow);
+        text-shadow: 0 0 5px var(--primary-glow);
+      }
+      #instructions {
+        font-size: 14px;
+        margin-top: 5px;
+        color: var(--text-color);
+        max-width: 600px;
+      }
       #ui-container {
         position: absolute;
         bottom: 20px;
@@ -57,300 +149,259 @@
         width: 80%;
         max-width: 600px;
         backdrop-filter: blur(8px);
-        transition: opacity 0.3s ease;
+        z-index: 10;
       }
-
-      .control-row {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-      }
-
-      .control-row label {
-        font-size: 16px;
-        color: var(--primary-glow);
-        min-width: 80px;
-        text-align: right;
-      }
-
-      input[type="range"] {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 100%;
-        height: 4px;
-        background: var(--grid-color);
-        outline: none;
-        border-radius: 2px;
-        transition: background 0.2s ease;
-      }
-      input[type="range"]:hover {
-        background: rgba(0, 229, 255, 0.2);
-      }
-
-      input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        background: var(--primary-glow);
-        cursor: pointer;
-        border-radius: 50%;
-        box-shadow: 0 0 10px var(--primary-glow);
-        transition: transform 0.2s ease;
-      }
-      input[type="range"]::-webkit-slider-thumb:active {
-        transform: scale(1.2);
-      }
-
-      input[type="range"]::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        background: var(--primary-glow);
-        cursor: pointer;
-        border-radius: 50%;
-        border: none;
-        box-shadow: 0 0 10px var(--primary-glow);
-      }
-
-      #top-bar {
-        position: absolute;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-      }
-
-      #nav-container {
-        display: flex;
-        gap: 10px;
-        background: rgba(0, 0, 0, 0.6);
-        padding: 5px;
-        border-radius: 8px;
-        border: 1px solid var(--grid-color);
-      }
-
-      .nav-button {
-        background: none;
-        border: 1px solid transparent;
-        color: var(--text-color);
-        padding: 8px 16px;
-        font-family: var(--font-family);
-        font-size: 14px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border-radius: 5px;
-      }
-
-      .nav-button:hover {
-        background: var(--grid-color);
-        color: var(--primary-glow);
-      }
-
-      .nav-button.active {
-        background: var(--primary-glow);
-        color: var(--bg-color);
-        box-shadow: 0 0 15px var(--primary-glow);
-      }
-
-      #text-overlay {
-        text-align: center;
-        pointer-events: none;
-      }
-
-      #title {
-        font-size: 22px;
-        color: var(--primary-glow);
-        text-shadow: 0 0 5px var(--primary-glow);
-      }
-
-      #instructions {
-        font-size: 14px;
-        margin-top: 5px;
-        color: var(--text-color);
-        max-width: 600px;
-      }
-
       #system-log {
         position: absolute;
         bottom: 10px;
-        right: 10px;
+        left: 10px;
         font-size: 12px;
-        color: var(--text-color);
-        opacity: 0.5;
+        color: var(--solved-glow);
+        opacity: 0.7;
         pointer-events: none;
+        z-index: 5;
       }
-
-      .solved-flash {
-        animation: flash 0.5s ease-out;
+      #final-reward-container {
+        position: absolute;
+        inset: 0;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s ease-in;
       }
-
-      @keyframes flash {
-        0% {
-          box-shadow: 0 0 40px rgba(0, 229, 255, 0.2),
-            inset 0 0 0px var(--solved-glow);
-        }
+      #final-reward-container.visible {
+        opacity: 1;
+      }
+      #final-reward-container h1 {
+        color: var(--solved-glow);
+        text-shadow: 0 0 15px var(--solved-glow);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
         50% {
-          box-shadow: 0 0 80px var(--solved-glow),
-            inset 0 0 100px var(--solved-glow);
-        }
-        100% {
-          box-shadow: 0 0 40px rgba(0, 229, 255, 0.2),
-            inset 0 0 0px var(--solved-glow);
+          opacity: 0.8;
         }
       }
     </style>
   </head>
   <body>
-    <main></main>
-
-    <div id="top-bar">
-      <div id="nav-container">
-        <button id="nav-linear" class="nav-button">Lock 1</button>
-        <button id="nav-transform" class="nav-button">Lock 2</button>
-        <button id="nav-parabolic" class="nav-button">Lock 3</button>
-      </div>
-      <div id="text-overlay">
-        <div id="title"></div>
-        <div id="instructions"></div>
-      </div>
+    <div id="intro-overlay">
+      <span id="intro-text"></span><span class="blinking-cursor">|</span>
     </div>
-
-    <div id="ui-container"></div>
-    <div id="system-log"></div>
+    <main>
+      <div id="ui-wrapper">
+        <div id="top-bar">
+          <div id="nav-container">
+            <button id="nav-linear" class="nav-button">Lock 1</button>
+            <button id="nav-transform" class="nav-button">Lock 2</button>
+            <button id="nav-parabolic" class="nav-button">Lock 3</button>
+          </div>
+          <div id="text-overlay">
+            <div id="title"></div>
+            <div id="instructions"></div>
+          </div>
+        </div>
+        <div id="ui-container"></div>
+        <div id="system-log"></div>
+      </div>
+      <div id="final-reward-container">
+        <h1>SYSTEM KERNEL UNLOCKED</h1>
+        <p>The Geometer's Truth: Harmony in Motion</p>
+      </div>
+    </main>
 
     <script>
-      // --- GLOBAL SETUP ---
-      let canvas;
-      let currentLock;
-      const locks = {};
-      const systemLog = document.getElementById("system-log");
-
-      function setup() {
-        const canvasContainer = document.querySelector("main");
-        const w = Math.min(window.innerWidth * 0.9, 1200);
-        const h = Math.min(window.innerHeight * 0.7, 800);
-        canvas = createCanvas(w, h);
-        canvas.parent(canvasContainer);
-        canvas.elt.oncontextmenu = () => false; // Disable right-click menu
-
-        // Initialize all lock objects
-        locks.linear = new LinearLock();
-        locks.transform = new TransformLock();
-        locks.parabolic = new ParabolicLock();
-
-        setupNavigation();
-        switchRoom("linear");
-      }
-
-      function draw() {
-        background(getComputedStyle(document.documentElement).getPropertyValue("--bg-color"));
-        drawGrid();
-        if (currentLock) {
-          currentLock.update();
-          currentLock.draw();
+      // --- AUDIO MANAGER ---
+      // Generates sound on the fly, no external files needed.
+      class AudioManager {
+        constructor() {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        _play(freq, type, duration, vol) {
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.00001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime);
+          osc.stop(this.ctx.currentTime + duration);
+        }
+        click() {
+          this._play(440, "triangle", 0.1, 0.1);
+        }
+        error() {
+          this._play(150, "square", 0.2, 0.2);
+        }
+        success() {
+          this._play(523.25, "sine", 0.2, 0.3);
+          setTimeout(() => this._play(659.25, "sine", 0.3, 0.3), 100);
+          setTimeout(() => this._play(783.99, "sine", 0.4, 0.3), 200);
+        }
+        boot() {
+          this._play(220, "sawtooth", 0.3, 0.1);
         }
       }
 
-      function windowResized() {
-        const w = Math.min(window.innerWidth * 0.9, 1200);
-        const h = Math.min(window.innerHeight * 0.7, 800);
-        resizeCanvas(w, h);
-        // Re-initialize locks with new dimensions
-        Object.values(locks).forEach((lock) => lock.init());
-      }
-
-      // --- UI & NAVIGATION ---
-      function setupNavigation() {
-        document.getElementById("nav-linear").onclick = () => switchRoom("linear");
-        document.getElementById("nav-transform").onclick = () => switchRoom("transform");
-        document.getElementById("nav-parabolic").onclick = () => switchRoom("parabolic");
-      }
-
-      function switchRoom(roomName) {
-        if (currentLock) currentLock.deactivate();
-        currentLock = locks[roomName];
-        currentLock.activate();
-
-        document.querySelectorAll(".nav-button").forEach((btn) => {
-          btn.classList.toggle("active", btn.id === `nav-${roomName}`);
-        });
-      }
-
-      function logToSystem(message) {
-        systemLog.innerHTML = `> ${message}`;
-      }
-
-      // --- EVENT HANDLERS ---
-      function mousePressed() {
-        if (currentLock && currentLock.handleMousePressed) {
-          currentLock.handleMousePressed();
+      // --- GAME MANAGER ---
+      // Orchestrates the entire application flow.
+      class GameManager {
+        constructor() {
+          this.locks = {};
+          this.currentLock = null;
+          this.audio = new AudioManager();
+          this.logEl = document.getElementById("system-log");
+          this.navButtons = {
+            linear: document.getElementById("nav-linear"),
+            transform: document.getElementById("nav-transform"),
+            parabolic: document.getElementById("nav-parabolic"),
+          };
         }
-      }
-      function mouseDragged() {
-        if (currentLock && currentLock.handleMouseDragged) {
-          currentLock.handleMouseDragged();
-        }
-      }
-      function mouseReleased() {
-        if (currentLock && currentLock.handleMouseReleased) {
-          currentLock.handleMouseReleased();
-        }
-      }
 
-      // --- HELPER FUNCTIONS ---
-      function drawGrid() {
-        stroke(getComputedStyle(document.documentElement).getPropertyValue("--grid-color"));
-        strokeWeight(1);
-        for (let x = 0; x < width; x += 40) line(x, 0, x, height);
-        for (let y = 0; y < height; y += 40) line(0, y, width, y);
+        init() {
+          this.locks.linear = new LinearLock(this);
+          this.locks.transform = new TransformLock(this);
+          this.locks.parabolic = new ParabolicLock(this);
+          Object.entries(this.navButtons).forEach(([name, btn]) => {
+            btn.onclick = () => this.switchRoom(name);
+          });
+          this.startBootSequence();
+        }
+
+        startBootSequence() {
+          const introTextEl = document.getElementById("intro-text");
+          const text = "GEOMETER'S LOCKBOX v3.0 INITIALIZING...";
+          let i = 0;
+          const interval = setInterval(() => {
+            introTextEl.textContent += text[i];
+            this.audio.boot();
+            i++;
+            if (i === text.length) {
+              clearInterval(interval);
+              setTimeout(() => this.start(), 1000);
+            }
+          }, 50);
+        }
+
+        start() {
+          document.getElementById("intro-overlay").style.display = "none";
+          this.log("System online. Awaiting input.");
+          this.switchRoom("linear");
+        }
+
+        switchRoom(name) {
+          if (this.locks[name].status === "LOCKED") {
+            this.log(`ERROR: Lock ${name.toUpperCase()} is sealed.`);
+            this.audio.error();
+            return;
+          }
+          if (this.currentLock) this.currentLock.deactivate();
+          this.currentLock = this.locks[name];
+          this.currentLock.activate();
+          this.updateNav();
+          this.audio.click();
+        }
+
+        onLockSolved(lockName) {
+          this.audio.success();
+          this.log(`SEQUENCE ACCEPTED. Lock ${lockName.toUpperCase()} UNLOCKED.`);
+          this.locks[lockName].status = "SOLVED";
+
+          const lockOrder = ["linear", "transform", "parabolic"];
+          const currentIndex = lockOrder.indexOf(lockName);
+          const nextLockName = lockOrder[currentIndex + 1];
+
+          if (nextLockName) {
+            this.locks[nextLockName].status = "ACTIVE";
+            this.log(`Access granted to Lock ${nextLockName.toUpperCase()}.`);
+            this.switchRoom(nextLockName);
+          } else {
+            this.triggerFinalReward();
+          }
+          this.updateNav();
+        }
+
+        updateNav() {
+          Object.entries(this.locks).forEach(([name, lock]) => {
+            this.navButtons[name].dataset.status = lock.status;
+            if (this.currentLock === lock) {
+              this.navButtons[name].dataset.status = "active";
+            }
+          });
+        }
+
+        triggerFinalReward() {
+          this.log("ALL SYSTEMS UNLOCKED. KERNEL ACCESSED.");
+          document.getElementById("ui-wrapper").style.opacity = 0;
+          document.querySelector("canvas").style.opacity = 0.1;
+          const rewardContainer = document.getElementById("final-reward-container");
+          rewardContainer.classList.add("visible");
+          this.currentLock = new FinalReward(this);
+        }
+
+        log(message) {
+          this.logEl.innerHTML = `> ${message}`;
+        }
       }
 
       // --- BASE LOCK CLASS ---
       class Lock {
-        constructor() {
-          this.solved = false;
+        constructor(manager, name) {
+          this.manager = manager;
+          this.name = name;
+          this.status = "LOCKED";
           this.uiContainer = document.getElementById("ui-container");
           this.titleEl = document.getElementById("title");
           this.instructionsEl = document.getElementById("instructions");
           this.init();
         }
-
-        init() {} // To be overridden by subclasses for setup
-        update() {} // To be overridden for per-frame logic
-        draw() {} // To be overridden for drawing
+        init() {}
+        update() {}
+        draw() {}
         activate() {
           this.reset();
           this.createUI();
           this.updateText();
+          this.uiContainer.style.animation = "fadeIn 0.5s ease";
+          this.titleEl.parentElement.style.animation = "fadeIn 0.5s ease";
         }
         deactivate() {
           this.uiContainer.innerHTML = "";
         }
         reset() {
-          this.solved = false;
           this.init();
         }
-        createUI() {} // To be overridden
-        updateText() {} // To be overridden
-
+        createUI() {}
+        updateText() {}
         handleSolved() {
-          if (!this.solved) {
-            this.solved = true;
-            logToSystem(`Lock ${this.constructor.name} sequence... UNLOCKED`);
-            document.querySelector("canvas").classList.add("solved-flash");
-            setTimeout(() => {
-              document.querySelector("canvas").classList.remove("solved-flash");
-            }, 500);
+          if (this.status !== "SOLVED") {
+            this.manager.onLockSolved(this.name);
           }
         }
+        // Event handlers to be implemented by subclasses if needed
+        handleMousePressed() {}
+        handleMouseDragged() {}
+        handleMouseReleased() {}
       }
 
-      // --- LOCK 1: LINEAR LOCK ---
+      // --- SPECIFIC LOCK IMPLEMENTATIONS (Refined from v2.0) ---
+      // (The core logic of the locks is largely the same as v2.0, but integrated
+      // into the new GameManager and state system.)
+
       class LinearLock extends Lock {
+        constructor(manager) {
+          super(manager, "linear");
+          this.status = "ACTIVE"; // First lock is active by default
+        }
         init() {
+          /* ... (Same init as v2.0) ... */
           this.p1 = createVector(-width / 4, -height / 6);
           this.p2 = createVector(width / 3, height / 4);
           this.barrier = {
@@ -362,9 +413,8 @@
           this.tolerance = 5;
           this.isColliding = false;
         }
-
         update() {
-          // Check for collision with barrier
+          /* ... (Same update as v2.0) ... */
           const lineStart = createVector(-width / 2, -(this.m * -width / 2 + this.b));
           const lineEnd = createVector(width / 2, -(this.m * width / 2 + this.b));
           this.isColliding = this.checkLineSegmentIntersection(
@@ -373,64 +423,44 @@
             this.barrier.p1,
             this.barrier.p2
           );
-
-          // Check for solution
           const dist1 = abs(this.m * this.p1.x - this.p1.y + this.b) / sqrt(this.m * this.m + 1);
           const dist2 = abs(this.m * this.p2.x - this.p2.y + this.b) / sqrt(this.m * this.m + 1);
           if (dist1 < this.tolerance && dist2 < this.tolerance && !this.isColliding) {
             this.handleSolved();
-          } else {
-            this.solved = false;
           }
         }
-
         draw() {
+          /* ... (Same draw as v2.0, but uses this.status for styling) ... */
           push();
           translate(width / 2, height / 2);
-
-          // Draw barrier
           strokeWeight(this.isColliding ? 4 : 2);
           stroke(getComputedStyle(document.documentElement).getPropertyValue("--danger-glow"));
           line(this.barrier.p1.x, -this.barrier.p1.y, this.barrier.p2.x, -this.barrier.p2.y);
-
-          // Draw line
-          strokeWeight(this.solved ? 4 : 2);
-          stroke(this.solved ? getComputedStyle(document.documentElement).getPropertyValue("--solved-glow") : getComputedStyle(document.documentElement).getPropertyValue("--primary-glow"));
-          let x1 = -width / 2;
-          let y1 = this.m * x1 + this.b;
-          let x2 = width / 2;
-          let y2 = this.m * x2 + this.b;
+          strokeWeight(this.status === "SOLVED" ? 4 : 2);
+          stroke(this.status === "SOLVED" ? getComputedStyle(document.documentElement).getPropertyValue("--solved-glow") : getComputedStyle(document.documentElement).getPropertyValue("--primary-glow"));
+          let x1 = -width / 2,
+            y1 = this.m * x1 + this.b;
+          let x2 = width / 2,
+            y2 = this.m * x2 + this.b;
           line(x1, -y1, x2, -y2);
-
-          // Draw points
           noStroke();
           fill(getComputedStyle(document.documentElement).getPropertyValue("--secondary-glow"));
           ellipse(this.p1.x, -this.p1.y, 20, 20);
           ellipse(this.p2.x, -this.p2.y, 20, 20);
           pop();
         }
-
         createUI() {
-          this.uiContainer.innerHTML = `
-            <div class="control-row">
-              <label for="m">Slope (m)</label>
-              <input type="range" id="m" min="-2" max="2" step="0.01" value="${this.m}">
-            </div>
-            <div class="control-row">
-              <label for="b">Y-Int (b)</label>
-              <input type="range" id="b" min="-${height / 2}" max="${height / 2}" step="1" value="${this.b}">
-            </div>
-          `;
+          /* ... (Same UI as v2.0) ... */
+          this.uiContainer.innerHTML = `<div class="control-row"><label for="m">Slope (m)</label><input type="range" id="m" min="-2" max="2" step="0.01" value="${this.m}"></div><div class="control-row"><label for="b">Y-Int (b)</label><input type="range" id="b" min="-${height / 2}" max="${height / 2}" step="1" value="${this.b}"></div>`;
           document.getElementById("m").oninput = (e) => (this.m = parseFloat(e.target.value));
           document.getElementById("b").oninput = (e) => (this.b = parseFloat(e.target.value));
         }
-
         updateText() {
           this.titleEl.innerText = "Lock 1: The Linear Aligner";
           this.instructionsEl.innerText = "Align the beam with both nodes, avoiding the security barrier.";
         }
-
         checkLineSegmentIntersection(p1, p2, p3, p4) {
+          /* ... (Same as v2.0) ... */
           const den = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
           if (den === 0) return false;
           const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / den;
@@ -439,55 +469,40 @@
         }
       }
 
-      // --- LOCK 2: TRANSFORMATION LOCK ---
       class TransformLock extends Lock {
+        constructor(manager) {
+          super(manager, "transform");
+        }
         init() {
-          this.keyShape = [
-            createVector(0, -40),
-            createVector(40, 0),
-            createVector(0, 40),
-            createVector(-20, 0),
-          ];
-          this.keyholeShape = [
-            createVector(width / 4, -height / 4 + 40),
-            createVector(width / 4 - 40, -height / 4),
-            createVector(width / 4, -height / 4 - 40),
-            createVector(width / 4 + 20, -height / 4),
-          ];
+          /* ... (Same init as v2.0) ... */
+          this.keyShape = [createVector(0, -40), createVector(40, 0), createVector(0, 40), createVector(-20, 0)];
+          this.keyholeShape = [createVector(width / 4, -height / 4 + 40), createVector(width / 4 - 40, -height / 4), createVector(width / 4, -height / 4 - 40), createVector(width / 4 + 20, -height / 4)];
           this.position = createVector(-width / 4, 0);
           this.rotation = 0;
           this.isDragging = false;
           this.dragMode = "translate";
           this.tolerance = 15;
         }
-
         update() {
+          /* ... (Same update as v2.0) ... */
           let totalDistance = 0;
           for (let i = 0; i < this.keyShape.length; i++) {
             let worldVertex = p5.Vector.add(this.keyShape[i].copy().rotate(this.rotation), this.position);
             totalDistance += worldVertex.dist(this.keyholeShape[i]);
           }
-          if (totalDistance < this.tolerance) {
-            this.handleSolved();
-          } else {
-            this.solved = false;
-          }
+          if (totalDistance < this.tolerance) this.handleSolved();
         }
-
         draw() {
+          /* ... (Same draw as v2.0) ... */
           push();
           translate(width / 2, height / 2);
-
-          // Draw Keyhole
           stroke(getComputedStyle(document.documentElement).getPropertyValue("--secondary-glow"));
-          strokeWeight(this.solved ? 4 : 3);
+          strokeWeight(this.status === "SOLVED" ? 4 : 3);
           noFill();
-          if (this.solved) stroke(getComputedStyle(document.documentElement).getPropertyValue("--solved-glow"));
+          if (this.status === "SOLVED") stroke(getComputedStyle(document.documentElement).getPropertyValue("--solved-glow"));
           beginShape();
           for (let v of this.keyholeShape) vertex(v.x, v.y);
           endShape(CLOSE);
-
-          // Draw Key
           push();
           translate(this.position.x, this.position.y);
           rotate(this.rotation);
@@ -497,8 +512,6 @@
           beginShape();
           for (let v of this.keyShape) vertex(v.x, v.y);
           endShape(CLOSE);
-
-          // Draw interaction hint
           if (this.isDragging) {
             noFill();
             stroke(getComputedStyle(document.documentElement).getPropertyValue("--primary-glow"), 100);
@@ -513,7 +526,6 @@
           pop();
           pop();
         }
-
         createUI() {
           this.uiContainer.innerHTML = "";
         }
@@ -521,10 +533,11 @@
           this.titleEl.innerText = "Lock 2: The Transformation Key";
           this.instructionsEl.innerText = "Drag to move. Hold SHIFT and drag to rotate. Right-click to reflect.";
         }
-
         handleMousePressed() {
+          /* ... (Same as v2.0) ... */
           if (mouseButton === RIGHT) {
             for (let v of this.keyShape) v.x *= -1;
+            this.manager.audio.click();
             return;
           }
           let mouseVec = createVector(mouseX - width / 2, mouseY - height / 2);
@@ -537,6 +550,7 @@
           }
         }
         handleMouseDragged() {
+          /* ... (Same as v2.0) ... */
           if (!this.isDragging) return;
           let mouseVec = createVector(mouseX - width / 2, mouseY - height / 2);
           if (this.dragMode === "translate") {
@@ -551,18 +565,21 @@
         }
       }
 
-      // --- LOCK 3: PARABOLIC LOCK ---
       class ParabolicLock extends Lock {
+        constructor(manager) {
+          super(manager, "parabolic");
+        }
         init() {
+          /* ... (Same init as v2.0) ... */
           this.a = 0.005;
           this.h = 0;
           this.k = height / 4;
-          this.signalAngle = 0; // In degrees
+          this.signalAngle = 0;
           this.signals = [-width / 4, -width / 8, 0, width / 8, width / 4];
           this.tolerance = 8;
         }
-
         update() {
+          /* ... (Same update as v2.0) ... */
           const focalLength = 1 / (4 * this.a);
           const focalPoint = createVector(this.h, -this.k + focalLength);
           let hits = 0;
@@ -574,57 +591,38 @@
             const reflection = incoming.copy().reflect(normal);
             const distToFocal = p5.Vector.dist(createVector(signalX, parabolaY), focalPoint);
             const projectedPoint = p5.Vector.add(createVector(signalX, parabolaY), reflection.mult(distToFocal));
-            if (projectedPoint.dist(focalPoint) < this.tolerance) {
-              hits++;
-            }
+            if (projectedPoint.dist(focalPoint) < this.tolerance) hits++;
           }
-          if (hits === this.signals.length) {
-            this.handleSolved();
-          } else {
-            this.solved = false;
-          }
+          if (hits === this.signals.length) this.handleSolved();
         }
-
         draw() {
+          /* ... (Same draw as v2.0) ... */
           push();
           translate(width / 2, height / 2);
-
           const focalLength = 1 / (4 * this.a);
           const focalPoint = createVector(this.h, -this.k + focalLength);
-
-          // Draw focal point
           noStroke();
           fill(getComputedStyle(document.documentElement).getPropertyValue("--secondary-glow"));
           ellipse(focalPoint.x, focalPoint.y, 20, 20);
-
-          // Draw parabola
           noFill();
           strokeWeight(2);
-          stroke(this.solved ? getComputedStyle(document.documentElement).getPropertyValue("--solved-glow") : getComputedStyle(document.documentElement).getPropertyValue("--primary-glow"));
+          stroke(this.status === "SOLVED" ? getComputedStyle(document.documentElement).getPropertyValue("--solved-glow") : getComputedStyle(document.documentElement).getPropertyValue("--primary-glow"));
           beginShape();
-          for (let x = -width / 2; x <= width / 2; x++) {
-            vertex(x, this.a * (x - this.h) * (x - this.h) - this.k);
-          }
+          for (let x = -width / 2; x <= width / 2; x++) vertex(x, this.a * (x - this.h) * (x - this.h) - this.k);
           endShape();
-
-          // Draw signals and reflections
           for (let signalX of this.signals) {
             const incoming = createVector(0, 1).rotate(radians(this.signalAngle));
             const startY = -height / 2;
             const startX = signalX - incoming.x * (height / 2);
             const parabolaY = this.a * (signalX - this.h) * (signalX - this.h) - this.k;
-
             stroke(getComputedStyle(document.documentElement).getPropertyValue("--primary-glow"), 150);
             strokeWeight(1);
             line(startX, startY, signalX, parabolaY);
-
             const tangentSlope = 2 * this.a * (signalX - this.h);
             const normal = createVector(-tangentSlope, 1).normalize();
             const reflection = incoming.copy().reflect(normal);
-
             const distToFocal = p5.Vector.dist(createVector(signalX, parabolaY), focalPoint);
             const projectedPoint = p5.Vector.add(createVector(signalX, parabolaY), reflection.copy().mult(distToFocal));
-
             if (projectedPoint.dist(focalPoint) < this.tolerance) {
               stroke(getComputedStyle(document.documentElement).getPropertyValue("--solved-glow"));
               strokeWeight(1.5);
@@ -637,35 +635,88 @@
           }
           pop();
         }
-
         createUI() {
-          this.uiContainer.innerHTML = `
-            <div class="control-row">
-              <label for="a">Dish Focus (a)</label>
-              <input type="range" id="a" min="0.001" max="0.02" step="0.0001" value="${this.a}">
-            </div>
-            <div class="control-row">
-              <label for="h">H-Shift (h)</label>
-              <input type="range" id="h" min="-${width / 2}" max="${width / 2}" step="1" value="${this.h}">
-            </div>
-            <div class="control-row">
-              <label for="k">V-Shift (k)</label>
-              <input type="range" id="k" min="-${height / 2}" max="${height / 2}" step="1" value="${this.k}">
-            </div>
-            <div class="control-row">
-              <label for="angle">Signal Angle</label>
-              <input type="range" id="angle" min="-30" max="30" step="1" value="${this.signalAngle}">
-            </div>
-          `;
+          /* ... (Same UI as v2.0) ... */
+          this.uiContainer.innerHTML = `<div class="control-row"><label for="a">Dish Focus (a)</label><input type="range" id="a" min="0.001" max="0.02" step="0.0001" value="${this.a}"></div><div class="control-row"><label for="h">H-Shift (h)</label><input type="range" id="h" min="-${width / 2}" max="${width / 2}" step="1" value="${this.h}"></div><div class="control-row"><label for="k">V-Shift (k)</label><input type="range" id="k" min="-${height / 2}" max="${height / 2}" step="1" value="${this.k}"></div><div class="control-row"><label for="angle">Signal Angle</label><input type="range" id="angle" min="-30" max="30" step="1" value="${this.signalAngle}"></div>`;
           document.getElementById("a").oninput = (e) => (this.a = parseFloat(e.target.value));
           document.getElementById("h").oninput = (e) => (this.h = parseFloat(e.target.value));
           document.getElementById("k").oninput = (e) => (this.k = parseFloat(e.target.value));
           document.getElementById("angle").oninput = (e) => (this.signalAngle = parseFloat(e.target.value));
         }
-
         updateText() {
           this.titleEl.innerText = "Lock 3: The Parabolic Receiver";
           this.instructionsEl.innerText = "Shape and position the dish to focus all incoming signals onto the receiver node.";
+        }
+      }
+
+      // --- FINAL REWARD CLASS ---
+      class FinalReward {
+        constructor(manager) {
+          this.manager = manager;
+          this.time = 0;
+          // Use final values from locks to seed the art
+          this.freqX = this.manager.locks.linear.m * 2 + 3;
+          this.freqY = this.manager.locks.transform.rotation * 2 + 2;
+          this.freqZ = this.manager.locks.parabolic.a * 200 + 1;
+        }
+        update() {
+          this.time += 0.01;
+        }
+        draw() {
+          push();
+          translate(width / 2, height / 2);
+          strokeWeight(1.5);
+          stroke(getComputedStyle(document.documentElement).getPropertyValue("--solved-glow"), 150);
+          noFill();
+          beginShape();
+          for (let i = 0; i < TWO_PI; i += 0.01) {
+            let x = sin(this.freqX * i + this.time) * (width / 4);
+            let y = sin(this.freqY * i) * (height / 4);
+            vertex(x, y);
+          }
+          endShape(CLOSE);
+          pop();
+        }
+        // Dummy methods to conform to Lock interface
+        activate() {}
+        deactivate() {}
+      }
+
+      // --- p5.js BOOTSTRAP ---
+      let gameManager;
+      function setup() {
+        const canvasContainer = document.querySelector("main");
+        const w = Math.min(window.innerWidth * 0.9, 1200);
+        const h = Math.min(window.innerHeight * 0.8, 800);
+        canvas = createCanvas(w, h);
+        canvas.parent(canvasContainer);
+        canvas.elt.oncontextmenu = () => false;
+        gameManager = new GameManager();
+        gameManager.init();
+      }
+      function draw() {
+        background(getComputedStyle(document.documentElement).getPropertyValue("--bg-color"));
+        if (gameManager && gameManager.currentLock) {
+          if (!(gameManager.currentLock instanceof FinalReward)) {
+            drawGrid();
+          }
+          gameManager.currentLock.update();
+          gameManager.currentLock.draw();
+        }
+      }
+      function mousePressed() {
+        if (gameManager && gameManager.currentLock && gameManager.currentLock.handleMousePressed) {
+          gameManager.currentLock.handleMousePressed();
+        }
+      }
+      function mouseDragged() {
+        if (gameManager && gameManager.currentLock && gameManager.currentLock.handleMouseDragged) {
+          gameManager.currentLock.handleMouseDragged();
+        }
+      }
+      function mouseReleased() {
+        if (gameManager && gameManager.currentLock && gameManager.currentLock.handleMouseReleased) {
+          gameManager.currentLock.handleMouseReleased();
         }
       }
     </script>
