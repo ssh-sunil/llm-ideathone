@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Dimension Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at center, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .portal-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .portal-header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .portal-header h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientFlow 4s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .dimension-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .dimension-btn {
+            padding: 12px 20px;
+            border: 2px solid transparent;
+            border-radius: 25px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dimension-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .dimension-btn.active {
+            border-color: #4ecdc4;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+        }
+
+        .main-workspace {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .dimension-viewer {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dimension-canvas {
+            width: 100%;
+            border-radius: 15px;
+            background: radial-gradient(ellipse at center, #1e3c72 0%, #2a5298 100%);
+            cursor: crosshair;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .panel-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border-left: 4px solid #4ecdc4;
+            position: relative;
+        }
+
+        .panel-section h3 {
+            color: #4ecdc4;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .element-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .element-card {
+            aspect-ratio: 1;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .element-card:hover {
+            transform: scale(1.1);
+            border-color: #4ecdc4;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .element-card.selected {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            border-color: white;
+        }
+
+        .property-slider {
+            margin-bottom: 15px;
+        }
+
+        .property-slider label {
+            display: block;
+            margin-bottom: 5px;
+            color: #b3d9ff;
+            font-weight: 600;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider {
+            flex: 1;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
+        }
+
+        .slider-value {
+            min-width: 40px;
+            text-align: center;
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+
+        .cascade-effects {
+            background: rgba(255, 107, 107, 0.1);
+            border-left-color: #ff6b6b;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { background: rgba(255, 107, 107, 0.1); }
+            50% { background: rgba(255, 107, 107, 0.2); }
+        }
+
+        .effect-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid #ff6b6b;
+            font-size: 14px;
+            animation: slideInLeft 0.5s ease;
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .dimensional-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #b3d9ff;
+        }
+
+        .discovery-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .discovery-item {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 13px;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #4ecdc4;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat 3s linear infinite;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-200px) rotate(360deg); opacity: 0; }
+        }
+
+        .quantum-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(78, 205, 196, 0.2) 0%, transparent 70%);
+            animation: quantumPulse 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes quantumPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.1; }
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        @media (max-width: 1024px) {
+            .main-workspace {
+                grid-template-columns: 1fr;
+            }
+            
+            .portal-header h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="portal-container">
+        <div class="portal-header">
+            <h1>🌌 SCIENTIFIC DIMENSION PORTAL</h1>
+            <p style="font-size: 1.2rem; margin-top: 10px; opacity: 0.8;">
+                Design Reality Across Multiple Dimensions of Science
+            </p>
+        </div>
+
+        <div class="dimension-selector">
+            <button class="dimension-btn active" onclick="switchDimension('atomic')" data-dimension="atomic">
+                ⚛️ Atomic Dimension
+            </button>
+            <button class="dimension-btn" onclick="switchDimension('molecular')" data-dimension="molecular">
+                🧬 Molecular Dimension  
+            </button>
+            <button class="dimension-btn" onclick="switchDimension('cellular')" data-dimension="cellular">
+                🦠 Cellular Dimension
+            </button>
+            <button class="dimension-btn" onclick="switchDimension('ecosystem')" data-dimension="ecosystem">
+                🌿 Ecosystem Dimension
+            </button>
+        </div>
+
+        <div class="main-workspace">
+            <div class="dimension-viewer">
+                <canvas id="dimensionCanvas" class="dimension-canvas" width="800" height="600"></canvas>
+                <div class="quantum-glow"></div>
+            </div>
+
+            <div class="control-panel">
+                <!-- Atomic Dimension Controls -->
+                <div id="atomicControls" class="dimension-controls">
+                    <div class="panel-section">
+                        <h3>⚛️ Atomic Constructor</h3>
+                        <div class="element-grid">
+                            <div class="element-card selected" onclick="selectElement('H')" data-element="H">
+                                <strong>H</strong>
+                                <small>1</small>
+                            </div>
+                            <div class="element-card" onclick="selectElement('He')" data-element="He">
+                                <strong>He</strong>
+                                <small>2</small>
+                            </div>
+                            <div class="element-card" onclick="selectElement('Li')" data-element="Li">
+                                <strong>Li</strong>
+                                <small>3</small>
+                            </div>
+                            <div class="element-card" onclick="selectElement('C')" data-element="C">
+                                <strong>C</strong>
+                                <small>6</small>
+                            </div>
+                            <div class="element-card" onclick="selectElement('N')" data-element="N">
+                                <strong>N</strong>
+                                <small>7</small>
+                            </div>
+                            <div class="element-card" onclick="selectElement('O')" data-element="O">
+                                <strong>O</strong>
+                                <small>8</small>
+                            </div>
+                        </div>
+                        
+                        <div class="property-slider">
+                            <label>Protons: <span id="protonCount">1</span></label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="protonSlider" min="1" max="20" value="1" oninput="updateAtomicProperties()">
+                                <span class="slider-value" id="protonValue">1</span>
+                            </div>
+                        </div>
+
+                        <div class="property-slider">
+                            <label>Neutrons: <span id="neutronCount">0</span></label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="neutronSlider" min="0" max="25" value="0" oninput="updateAtomicProperties()">
+                                <span class="slider-value" id="neutronValue">0</span>
+                            </div>
+                        </div>
+
+                        <div class="property-slider">
+                            <label>Electrons: <span id="electronCount">1</span></label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="electronSlider" min="1" max="20" value="1" oninput="updateAtomicProperties()">
+                                <span class="slider-value" id="electronValue">1</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-section cascade-effects">
+                        <h3>🌊 Cascade Effects</h3>
+                        <div id="cascadeEffects">
+                            <div class="effect-item">⚗️ Chemistry: Bonding capacity changed</div>
+                            <div class="effect-item">🧪 Reactions: New pathways available</div>
+                            <div class="effect-item">🦠 Biology: Cellular metabolism affected</div>
+                            <div class="effect-item">🌍 Ecology: Element cycling modified</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Molecular Dimension Controls -->
+                <div id="molecularControls" class="dimension-controls" style="display: none;">
+                    <div class="panel-section">
+                        <h3>🧬 Molecular Assembly</h3>
+                        <div class="element-grid">
+                            <div class="element-card selected" onclick="selectMolecule('H2O')">
+                                <strong>H₂O</strong>
+                                <small>Water</small>
+                            </div>
+                            <div class="element-card" onclick="selectMolecule('CO2')">
+                                <strong>CO₂</strong>
+                                <small>Carbon Dioxide</small>
+                            </div>
+                            <div class="element-card" onclick="selectMolecule('CH4')">
+                                <strong>CH₄</strong>
+                                <small>Methane</small>
+                            </div>
+                            <div class="element-card" onclick="selectMolecule('O2')">
+                                <strong>O₂</strong>
+                                <small>Oxygen</small>
+                            </div>
+                            <div class="element-card" onclick="selectMolecule('C6H12O6')">
+                                <strong>C₆H₁₂O₆</strong>
+                                <small>Glucose</small>
+                            </div>
+                        </div>
+
+                        <div class="property-slider">
+                            <label>Temperature (K): <span id="tempDisplay">298</span></label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="tempSlider" min="200" max="500" value="298" oninput="updateMolecularProperties()">
+                                <span class="slider-value" id="tempValue">298</span>
+                            </div>
+                        </div>
+
+                        <div class="property-slider">
+                            <label>Pressure (atm): <span id="pressureDisplay">1.0</span></label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="pressureSlider" min="0.1" max="5.0" step="0.1" value="1.0" oninput="updateMolecularProperties()">
+                                <span class="slider-value" id="pressureValue">1.0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-section cascade-effects">
+                        <h3>🌊 Molecular Cascade</h3>
+                        <div id="molecularCascade">
+                            <div class="effect-item">🔥 Reaction Rate: Increased by 15%</div>
+                            <div class="effect-item">🦠 Cell Activity: Enhanced metabolism</div>
+                            <div class="effect-item">🌱 Plant Growth: Photosynthesis boosted</div>
+                            <div class="effect-item">🌍 Climate: Gas ratios shifted</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cellular Dimension Controls -->
+                <div id="cellularControls" class="dimension-controls" style="display: none;">
+                    <div class="panel-section">
+                        <h3>🦠 Cellular Engineering</h3>
+                        <div class="property-slider">
+                            <label>ATP Production: <span id="atpDisplay">100</span></label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="atpSlider" min="50" max="200" value="100" oninput="updateCellularProperties()">
+                                <span class="slider-value" id="atpValue">100</span>
+                            </div>
+                        </div>
+
+                        <div class="property-slider">
+                            <label>DNA Mutation Rate: <span id="mutationDisplay">0.1</span>%</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="mutationSlider" min="0.01" max="1.0" step="0.01" value="0.1" oninput="updateCellularProperties()">
+                                <span class="slider-value" id="mutationValue">0.1</span>
+                            </div>
+                        </div>
+
+                        <div class="property-slider">
+                            <label>Cell Division Rate: <span id="divisionDisplay">24</span>hrs</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="divisionSlider" min="12" max="72" value="24" oninput="updateCellularProperties()">
+                                <span class="slider-value" id="divisionValue">24</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-section cascade-effects">
+                        <h3>🌊 Biological Cascade</h3>
+                        <div id="cellularCascade">
+                            <div class="effect-item">🧬 Evolution: Faster adaptation</div>
+                            <div class="effect-item">💪 Organism: Increased fitness</div>
+                            <div class="effect-item">🦋 Population: Growth rate up 12%</div>
+                            <div class="effect-item">🌿 Ecosystem: Biodiversity shift</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ecosystem Dimension Controls -->
+                <div id="ecosystemControls" class="dimension-controls" style="display: none;">
+                    <div class="panel-section">
+                        <h3>🌿 Ecosystem Design</h3>
+                        <div class="property-slider">
+                            <label>Solar Energy: <span id="solarDisplay">100</span>%</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="solarSlider" min="50" max="150" value="100" oninput="updateEcosystemProperties()">
+                                <span class="slider-value" id="solarValue">100</span>
+                            </div>
+                        </div>
+
+                        <div class="property-slider">
+                            <label>Predator/Prey Ratio: <span id="ratioDisplay">0.1</span></label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="ratioSlider" min="0.05" max="0.5" step="0.01" value="0.1" oninput="updateEcosystemProperties()">
+                                <span class="slider-value" id="ratioValue">0.1</span>
+                            </div>
+                        </div>
+
+                        <div class="property-slider">
+                            <label>Carrying Capacity: <span id="capacityDisplay">1000</span></label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="capacitySlider" min="500" max="2000" value="1000" oninput="updateEcosystemProperties()">
+                                <span class="slider-value" id="capacityValue">1000</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-section cascade-effects">
+                        <h3>🌊 Planetary Cascade</h3>
+                        <div id="ecosystemCascade">
+                            <div class="effect-item">🌍 Climate: Temperature +0.5°C</div>
+                            <div class="effect-item">💨 Atmosphere: O₂ levels rising</div>
+                            <div class="effect-item">🌊 Ocean: pH stabilizing</div>
+                            <div class="effect-item">🔄 Carbon Cycle: Enhanced absorption</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>📊 Dimensional Stats</h3>
+                    <div class="dimensional-stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="stabilityValue">87%</div>
+                            <div class="stat-label">Stability</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="complexityValue">42</div>
+                            <div class="stat-label">Complexity</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="efficiencyValue">76%</div>
+                            <div class="stat-label">Efficiency</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="innovationValue">🔥</div>
+                            <div class="stat-label">Innovation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>🔬 Discovery Log</h3>
+                    <div class="discovery-log" id="discoveryLog">
+                        <div class="discovery-item">🎉 Welcome to the Scientific Dimension Portal!</div>
+                        <div class="discovery-item">⚛️ Hydrogen atom constructed successfully</div>
+                        <div class="discovery-item">🌊 Cross-dimensional effects initialized</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="randomizeCurrentDimension()">🎲 Randomize</button>
+                    <button class="action-btn" onclick="resetDimension()">🔄 Reset</button>
+                    <button class="action-btn" onclick="saveReality()">💾 Save Reality</button>
+                    <button class="action-btn" onclick="loadReality()">📁 Load Reality</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ScientificDimensionPortal {
+            constructor() {
+                this.canvas = document.getElementById('dimensionCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.currentDimension = 'atomic';
+                this.time = 0;
+                this.particles = [];
+                this.atoms = [];
+                this.molecules = [];
+                this.cells = [];
+                this.organisms = [];
+                
+                // Scientific properties
+                this.atomicProperties = {
+                    protons: 1,
+                    neutrons: 0,
+                    electrons: 1,
+                    selectedElement: 'H'
+                };
+                
+                this.molecularProperties = {
+                    temperature: 298,
+                    pressure: 1.0,
+                    selectedMolecule: 'H2O'
+                };
+                
+                this.cellularProperties = {
+                    atpProduction: 100,
+                    mutationRate: 0.1,
+                    divisionRate: 24
+                };
+                
+                this.ecosystemProperties = {
+                    solarEnergy: 100,
+                    predatorPreyRatio: 0.1,
+                    carryingCapacity: 1000
+                };
+                
+                this.discoveries = [];
+                this.startAnimation();
+                this.createInitialParticles();
+                this.setupCanvasInteraction();
+            }
+
+            setupCanvasInteraction() {
+                this.canvas.addEventListener('click', (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    this.handleCanvasClick(x, y);
+                });
+            }
+
+            handleCanvasClick(x, y) {
+                switch(this.currentDimension) {
+                    case 'atomic':
+                        this.createAtom(x, y);
+                        break;
+                    case 'molecular':
+                        this.createMolecule(x, y);
+                        break;
+                    case 'cellular':
+                        this.createCell(x, y);
+                        break;
+                    case 'ecosystem':
+                        this.createOrganism(x, y);
+                        break;
+                }
+                this.addParticleEffect(x, y);
+                this.triggerCascadeEffects();
+            }
+
+            createAtom(x, y) {
+                const atom = {
+                    x: x,
+                    y: y,
+                    protons: this.atomicProperties.protons,
+                    neutrons: this.atomicProperties.neutrons,
+                    electrons: this.atomicProperties.electrons,
+                    element: this.atomicProperties.selectedElement,
+                    color: this.getElementColor(this.atomicProperties.selectedElement),
+                    created: Date.now()
+                };
+                this.atoms.push(atom);
+                this.addDiscovery(`⚛️ ${this.atomicProperties.selectedElement} atom created with ${this.atomicProperties.protons} protons`);
+            }
+
+            createMolecule(x, y) {
+                const molecule = {
+                    x: x,
+                    y: y,
+                    type: this.molecularProperties.selectedMolecule,
+                    temperature: this.molecularProperties.temperature,
+                    pressure: this.molecularProperties.pressure,
+                    velocity: { x: (Math.random() - 0.5) * 2, y: (Math.random() - 0.5) * 2 },
+                    created: Date.now()
+                };
+                this.molecules.push(molecule);
+                this.addDiscovery(`🧬 ${this.molecularProperties.selectedMolecule} molecule synthesized`);
+            }
+
+            createCell(x, y) {
+                const cell = {
+                    x: x,
+                    y: y,
+                    atp: this.cellularProperties.atpProduction,
+                    dna: this.generateRandomDNA(),
+                    age: 0,
+                    health: 100,
+                    created: Date.now()
+                };
+                this.cells.push(cell);
+                this.addDiscovery(`🦠 New cell created with ${this.cellularProperties.atpProduction} ATP`);
+            }
+
+            createOrganism(x, y) {
+                const organism = {
+                    x: x,
+                    y: y,
+                    species: Math.random() > 0.5 ? 'predator' : 'prey',
+                    population: Math.floor(Math.random() * 50) + 10,
+                    fitness: Math.random() * 100,
+                    created: Date.now()
+                };
+                this.organisms.push(organism);
+                this.addDiscovery(`🌿 ${organism.species} population (${organism.population}) established`);
+            }
+
+            getElementColor(element) {
+                const colors = {
+                    'H': '#ff9999',
+                    'He': '#ffcc99',
+                    'Li': '#ccffcc',
+                    'C': '#999999',
+                    'N': '#9999ff',
+                    'O': '#ff9999'
+                };
+                return colors[element] || '#ffffff';
+            }
+
+            generateRandomDNA() {
+                const bases = ['A', 'T', 'G', 'C'];
+                let dna = '';
+                for (let i = 0; i < 12; i++) {
+                    dna += bases[Math.floor(Math.random() * bases.length)];
+                }
+                return dna;
+            }
+
+            drawAtomicDimension() {
+                // Draw quantum field background
+                this.drawQuantumField();
+                
+                // Draw atoms
+                this.atoms.forEach((atom, index) => {
+                    this.drawAtom(atom, index);
+                });
+                
+                // Draw electron orbits and quantum effects
+                this.drawQuantumEffects();
+            }
+
+            drawMolecularDimension() {
+                // Draw molecular background
+                this.drawMolecularField();
+                
+                // Draw molecules with motion
+                this.molecules.forEach(molecule => {
+                    this.drawMolecule(molecule);
+                    this.updateMolecularMotion(molecule);
+                });
+                
+                // Draw chemical bonds and reactions
+                this.drawChemicalBonds();
+            }
+
+            drawCellularDimension() {
+                // Draw cellular background
+                this.drawCellularField();
+                
+                // Draw cells with organelles
+                this.cells.forEach(cell => {
+                    this.drawCell(cell);
+                    this.updateCellularProcesses(cell);
+                });
+                
+                // Draw cellular processes
+                this.drawCellularProcesses();
+            }
+
+            drawEcosystemDimension() {
+                // Draw ecosystem background
+                this.drawEcosystemField();
+                
+                // Draw organisms and populations
+                this.organisms.forEach(organism => {
+                    this.drawOrganism(organism);
+                    this.updateEcosystemDynamics(organism);
+                });
+                
+                // Draw energy flows and interactions
+                this.drawEnergyFlows();
+            }
+
+            drawQuantumField() {
+                const gradient = this.ctx.createRadialGradient(
+                    this.canvas.width/2, this.canvas.height/2, 0,
+                    this.canvas.width/2, this.canvas.height/2, this.canvas.width/2
+                );
+                gradient.addColorStop(0, 'rgba(78, 205, 196, 0.1)');
+                gradient.addColorStop(1, 'rgba(30, 60, 114, 0.3)');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw quantum grid
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                this.ctx.lineWidth = 1;
+                for (let x = 0; x < this.canvas.width; x += 50) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, 0);
+                    this.ctx.lineTo(x, this.canvas.height);
+                    this.ctx.stroke();
+                }
+                for (let y = 0; y < this.canvas.height; y += 50) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, y);
+                    this.ctx.lineTo(this.canvas.width, y);
+                    this.ctx.stroke();
+                }
+            }
+
+            drawAtom(atom, index) {
+                // Draw nucleus
+                this.ctx.fillStyle = atom.color;
+                this.ctx.beginPath();
+                this.ctx.arc(atom.x, atom.y, 8 + atom.protons, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Draw protons
+                this.ctx.fillStyle = '#ff6666';
+                for (let i = 0; i < atom.protons; i++) {
+                    const angle = (i / atom.protons) * Math.PI * 2;
+                    const px = atom.x + Math.cos(angle) * 4;
+                    const py = atom.y + Math.sin(angle) * 4;
+                    this.ctx.beginPath();
+                    this.ctx.arc(px, py, 2, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                // Draw neutrons
+                this.ctx.fillStyle = '#cccccc';
+                for (let i = 0; i < atom.neutrons; i++) {
+                    const angle = (i / atom.neutrons) * Math.PI * 2 + Math.PI;
+                    const nx = atom.x + Math.cos(angle) * 3;
+                    const ny = atom.y + Math.sin(angle) * 3;
+                    this.ctx.beginPath();
+                    this.ctx.arc(nx, ny, 2, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                // Draw electron orbits
+                this.ctx.strokeStyle = 'rgba(78, 205, 196, 0.5)';
+                this.ctx.lineWidth = 1;
+                for (let shell = 1; shell <= Math.ceil(atom.electrons / 8); shell++) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(atom.x, atom.y, 20 + shell * 15, 0, Math.PI * 2);
+                    this.ctx.stroke();
+                }
+                
+                // Draw electrons
+                this.ctx.fillStyle = '#4ecdc4';
+                for (let i = 0; i < atom.electrons; i++) {
+                    const shell = Math.floor(i / 8) + 1;
+                    const angleOffset = (this.time * 0.02) + (index * 0.1);
+                    const angle = (i * Math.PI * 2 / Math.min(8, atom.electrons)) + angleOffset;
+                    const radius = 20 + shell * 15;
+                    const ex = atom.x + Math.cos(angle) * radius;
+                    const ey = atom.y + Math.sin(angle) * radius;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(ex, ey, 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // Electron trail
+                    this.ctx.strokeStyle = 'rgba(78, 205, 196, 0.3)';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.arc(atom.x, atom.y, radius, angle - 0.5, angle);
+                    this.ctx.stroke();
+                }
+                
+                // Element label
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = '14px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(atom.element, atom.x, atom.y - 40);
+            }
+
+            drawMolecularField() {
+                const gradient = this.ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
+                gradient.addColorStop(0, 'rgba(68, 160, 141, 0.1)');
+                gradient.addColorStop(1, 'rgba(78, 205, 196, 0.1)');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+
+            drawMolecule(molecule) {
+                const structures = {
+                    'H2O': () => this.drawWaterMolecule(molecule),
+                    'CO2': () => this.drawCO2Molecule(molecule),
+                    'CH4': () => this.drawMethaneMolecule(molecule),
+                    'O2': () => this.drawOxygenMolecule(molecule),
+                    'C6H12O6': () => this.drawGlucoseMolecule(molecule)
+                };
+                
+                if (structures[molecule.type]) {
+                    structures[molecule.type]();
+                }
+            }
+
+            drawWaterMolecule(molecule) {
+                // Oxygen (red)
+                this.ctx.fillStyle = '#ff4444';
+                this.ctx.beginPath();
+                this.ctx.arc(molecule.x, molecule.y, 8, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Hydrogens (white)
+                this.ctx.fillStyle = '#ffffff';
+                const angle1 = Math.PI * 0.3;
+                const angle2 = -Math.PI * 0.3;
+                const bondLength = 20;
+                
+                const h1x = molecule.x + Math.cos(angle1) * bondLength;
+                const h1y = molecule.y + Math.sin(angle1) * bondLength;
+                const h2x = molecule.x + Math.cos(angle2) * bondLength;
+                const h2y = molecule.y + Math.sin(angle2) * bondLength;
+                
+                this.ctx.beginPath();
+                this.ctx.arc(h1x, h1y, 5, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(h2x, h2y, 5, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Bonds
+                this.ctx.strokeStyle = '#cccccc';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.moveTo(molecule.x, molecule.y);
+                this.ctx.lineTo(h1x, h1y);
+                this.ctx.moveTo(molecule.x, molecule.y);
+                this.ctx.lineTo(h2x, h2y);
+                this.ctx.stroke();
+            }
+
+            drawCO2Molecule(molecule) {
+                // Carbon (black)
+                this.ctx.fillStyle = '#333333';
+                this.ctx.beginPath();
+                this.ctx.arc(molecule.x, molecule.y, 6, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Oxygens (red)
+                this.ctx.fillStyle = '#ff4444';
+                this.ctx.beginPath();
+                this.ctx.arc(molecule.x - 25, molecule.y, 8, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(molecule.x + 25, molecule.y, 8, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Double bonds
+                this.ctx.strokeStyle = '#cccccc';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                this.ctx.moveTo(molecule.x - 6, molecule.y - 2);
+                this.ctx.lineTo(molecule.x - 19, molecule.y - 2);
+                this.ctx.moveTo(molecule.x - 6, molecule.y + 2);
+                this.ctx.lineTo(molecule.x - 19, molecule.y + 2);
+                this.ctx.moveTo(molecule.x + 6, molecule.y - 2);
+                this.ctx.lineTo(molecule.x + 19, molecule.y - 2);
+                this.ctx.moveTo(molecule.x + 6, molecule.y + 2);
+                this.ctx.lineTo(molecule.x + 19, molecule.y + 2);
+                this.ctx.stroke();
+            }
+
+            drawMethaneMolecule(molecule) {
+                // Carbon center (black)
+                this.ctx.fillStyle = '#333333';
+                this.ctx.beginPath();
+                this.ctx.arc(molecule.x, molecule.y, 6, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Four hydrogens (white)
+                this.ctx.fillStyle = '#ffffff';
+                const angles = [0, Math.PI/2, Math.PI, 3*Math.PI/2];
+                const bondLength = 20;
+                
+                angles.forEach(angle => {
+                    const hx = molecule.x + Math.cos(angle) * bondLength;
+                    const hy = molecule.y + Math.sin(angle) * bondLength;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(hx, hy, 4, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // Bond
+                    this.ctx.strokeStyle = '#cccccc';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(molecule.x, molecule.y);
+                    this.ctx.lineTo(hx, hy);
+                    this.ctx.stroke();
+                });
+            }
+
+            drawOxygenMolecule(molecule) {
+                // Two oxygen atoms (red)
+                this.ctx.fillStyle = '#ff4444';
+                this.ctx.beginPath();
+                this.ctx.arc(molecule.x - 10, molecule.y, 8, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(molecule.x + 10, molecule.y, 8, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Double bond
+                this.ctx.strokeStyle = '#cccccc';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                this.ctx.moveTo(molecule.x - 2, molecule.y - 2);
+                this.ctx.lineTo(molecule.x + 2, molecule.y - 2);
+                this.ctx.moveTo(molecule.x - 2, molecule.y + 2);
+                this.ctx.lineTo(molecule.x + 2, molecule.y + 2);
+                this.ctx.stroke();
+            }
+
+            drawGlucoseMolecule(molecule) {
+                // Simplified glucose ring
+                this.ctx.strokeStyle = '#4ecdc4';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                
+                const radius = 25;
+                const sides = 6;
+                
+                for (let i = 0; i <= sides; i++) {
+                    const angle = (i / sides) * Math.PI * 2;
+                    const x = molecule.x + Math.cos(angle) * radius;
+                    const y = molecule.y + Math.sin(angle) * radius;
+                    
+                    if (i === 0) {
+                        this.ctx.moveTo(x, y);
+                    } else {
+                        this.ctx.lineTo(x, y);
+                    }
+                }
+                this.ctx.stroke();
+                
+                // Carbon atoms at vertices
+                this.ctx.fillStyle = '#333333';
+                for (let i = 0; i < sides; i++) {
+                    const angle = (i / sides) * Math.PI * 2;
+                    const x = molecule.x + Math.cos(angle) * radius;
+                    const y = molecule.y + Math.sin(angle) * radius;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, 4, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+            }
+
+            updateMolecularMotion(molecule) {
+                // Brownian motion based on temperature
+                const motionScale = this.molecularProperties.temperature / 298;
+                molecule.x += molecule.velocity.x * motionScale;
+                molecule.y += molecule.velocity.y * motionScale;
+                
+                // Boundary collision
+                if (molecule.x < 0 || molecule.x > this.canvas.width) {
+                    molecule.velocity.x *= -1;
+                }
+                if (molecule.y < 0 || molecule.y > this.canvas.height) {
+                    molecule.velocity.y *= -1;
+                }
+                
+                // Random velocity changes
+                molecule.velocity.x += (Math.random() - 0.5) * 0.1;
+                molecule.velocity.y += (Math.random() - 0.5) * 0.1;
+                
+                // Velocity damping
+                molecule.velocity.x *= 0.99;
+                molecule.velocity.y *= 0.99;
+            }
+
+            drawChemicalBonds() {
+                // Draw intermolecular forces
+                this.molecules.forEach((mol1, i) => {
+                    this.molecules.slice(i + 1).forEach(mol2 => {
+                        const dx = mol2.x - mol1.x;
+                        const dy = mol2.y - mol1.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 80) {
+                            this.ctx.strokeStyle = `rgba(255, 255, 255, ${0.3 * (1 - distance / 80)})`;
+                            this.ctx.lineWidth = 1;
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(mol1.x, mol1.y);
+                            this.ctx.lineTo(mol2.x, mol2.y);
+                            this.ctx.stroke();
+                        }
+                    });
+                });
+            }
+
+            drawCellularField() {
+                const gradient = this.ctx.createRadialGradient(
+                    this.canvas.width/2, this.canvas.height/2, 0,
+                    this.canvas.width/2, this.canvas.height/2, this.canvas.width/2
+                );
+                gradient.addColorStop(0, 'rgba(150, 206, 180, 0.1)');
+                gradient.addColorStop(1, 'rgba(68, 160, 141, 0.2)');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+
+            drawCell(cell) {
+                // Cell membrane
+                this.ctx.strokeStyle = '#4ecdc4';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                this.ctx.arc(cell.x, cell.y, 30, 0, Math.PI * 2);
+                this.ctx.stroke();
+                
+                // Cell fill with health-based color
+                const healthColor = `rgba(78, 205, 196, ${cell.health / 100 * 0.3})`;
+                this.ctx.fillStyle = healthColor;
+                this.ctx.fill();
+                
+                // Nucleus
+                this.ctx.fillStyle = '#ff6b6b';
+                this.ctx.beginPath();
+                this.ctx.arc(cell.x, cell.y, 8, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // DNA visualization
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = '8px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(cell.dna.substring(0, 4), cell.x, cell.y + 2);
+                
+                // Mitochondria (ATP producers)
+                const mitoCount = Math.floor(cell.atp / 25);
+                this.ctx.fillStyle = '#feca57';
+                for (let i = 0; i < mitoCount; i++) {
+                    const angle = (i / mitoCount) * Math.PI * 2;
+                    const mx = cell.x + Math.cos(angle) * 20;
+                    const my = cell.y + Math.sin(angle) * 20;
+                    this.ctx.beginPath();
+                    this.ctx.arc(mx, my, 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                // Age indicator
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                this.ctx.arc(cell.x, cell.y, 35, 0, (cell.age / 100) * Math.PI * 2);
+                this.ctx.stroke();
+            }
+
+            updateCellularProcesses(cell) {
+                cell.age += 0.1;
+                
+                // ATP consumption and production
+                cell.atp = Math.max(0, Math.min(200, cell.atp + (Math.random() - 0.4) * 2));
+                
+                // Health based on ATP and age
+                cell.health = Math.max(0, 100 - (cell.age / 10) + (cell.atp - 100) * 0.2);
+                
+                // Cell division
+                if (cell.age > 50 && cell.health > 80 && Math.random() < 0.001) {
+                    this.divideCellr(cell);
+                }
+            }
+
+            divideCell(cell) {
+                const newCell = {
+                    x: cell.x + (Math.random() - 0.5) * 60,
+                    y: cell.y + (Math.random() - 0.5) * 60,
+                    atp: cell.atp * 0.7,
+                    dna: this.mutateDNA(cell.dna),
+                    age: 0,
+                    health: 100,
+                    created: Date.now()
+                };
+                
+                this.cells.push(newCell);
+                cell.age = 0;
+                cell.atp *= 0.7;
+                this.addDiscovery(`🔬 Cell division occurred! New DNA: ${newCell.dna.substring(0, 6)}`);
+            }
+
+            mutateDNA(dna) {
+                let mutated = dna;
+                if (Math.random() < this.cellularProperties.mutationRate / 100) {
+                    const bases = ['A', 'T', 'G', 'C'];
+                    const position = Math.floor(Math.random() * dna.length);
+                    const newBase = bases[Math.floor(Math.random() * bases.length)];
+                    mutated = dna.substring(0, position) + newBase + dna.substring(position + 1);
+                }
+                return mutated;
+            }
+
+            drawCellularProcesses() {
+                // Draw molecular transport
+                this.cells.forEach(cell => {
+                    // ATP visualization
+                    const atpParticles = Math.floor(cell.atp / 20);
+                    this.ctx.fillStyle = '#feca57';
+                    
+                    for (let i = 0; i < atpParticles; i++) {
+                        const angle = (this.time * 0.05 + i) % (Math.PI * 2);
+                        const radius = 40 + Math.sin(this.time * 0.02 + i) * 5;
+                        const px = cell.x + Math.cos(angle) * radius;
+                        const py = cell.y + Math.sin(angle) * radius;
+                        
+                        this.ctx.beginPath();
+                        this.ctx.arc(px, py, 2, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                });
+            }
+
+            drawEcosystemField() {
+                // Sky gradient
+                const skyGradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height * 0.6);
+                skyGradient.addColorStop(0, 'rgba(135, 206, 235, 0.3)');
+                skyGradient.addColorStop(1, 'rgba(144, 238, 144, 0.2)');
+                
+                this.ctx.fillStyle = skyGradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height * 0.6);
+                
+                // Ground gradient
+                const groundGradient = this.ctx.createLinearGradient(0, this.canvas.height * 0.6, 0, this.canvas.height);
+                groundGradient.addColorStop(0, 'rgba(34, 139, 34, 0.3)');
+                groundGradient.addColorStop(1, 'rgba(101, 67, 33, 0.3)');
+                
+                this.ctx.fillStyle = groundGradient;
+                this.ctx.fillRect(0, this.canvas.height * 0.6, this.canvas.width, this.canvas.height * 0.4);
+                
+                // Sun
+                this.ctx.fillStyle = `rgba(255, 215, 0, ${this.ecosystemProperties.solarEnergy / 100})`;
+                this.ctx.beginPath();
+                this.ctx.arc(this.canvas.width - 100, 80, 30, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+
+            drawOrganism(organism) {
+                const size = Math.sqrt(organism.population) * 2;
+                const color = organism.species === 'predator' ? '#ff6b6b' : '#4ecdc4';
+                
+                // Population cluster
+                this.ctx.fillStyle = color;
+                this.ctx.beginPath();
+                this.ctx.arc(organism.x, organism.y, size, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Individual organisms
+                const individuals = Math.min(organism.population, 20);
+                for (let i = 0; i < individuals; i++) {
+                    const angle = (i / individuals) * Math.PI * 2;
+                    const radius = size * 0.8 + Math.random() * size * 0.4;
+                    const ox = organism.x + Math.cos(angle) * radius;
+                    const oy = organism.y + Math.sin(angle) * radius;
+                    
+                    this.ctx.fillStyle = color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(ox, oy, 2, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                // Species indicator
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = '12px Arial';
+                this.ctx.textAlign = 'center';
+                const icon = organism.species === 'predator' ? '🦁' : '🐰';
+                this.ctx.fillText(icon, organism.x, organism.y - size - 10);
+                
+                // Population number
+                this.ctx.font = '10px Arial';
+                this.ctx.fillText(organism.population.toString(), organism.x, organism.y + size + 15);
+            }
+
+            updateEcosystemDynamics(organism) {
+                // Population dynamics
+                const growthRate = organism.species === 'prey' ? 0.02 : 0.005;
+                const carryingCapacityEffect = 1 - (this.getTotalPopulation() / this.ecosystemProperties.carryingCapacity);
+                
+                if (carryingCapacityEffect > 0) {
+                    organism.population += organism.population * growthRate * carryingCapacityEffect;
+                }
+                
+                // Predator-prey interactions
+                if (organism.species === 'predator') {
+                    const preyNearby = this.organisms.filter(o => 
+                        o.species === 'prey' && 
+                        this.getDistance(organism, o) < 100
+                    );
+                    
+                    if (preyNearby.length > 0) {
+                        const huntSuccess = Math.random() < 0.01;
+                        if (huntSuccess && preyNearby[0].population > 1) {
+                            preyNearby[0].population--;
+                            organism.population += 0.5;
+                        }
+                    }
+                }
+                
+                // Environmental effects
+                const solarEffect = this.ecosystemProperties.solarEnergy / 100;
+                if (organism.species === 'prey') {
+                    organism.population *= (0.999 + solarEffect * 0.002);
+                }
+                
+                // Minimum population
+                organism.population = Math.max(1, organism.population);
+                organism.population = Math.min(this.ecosystemProperties.carryingCapacity / 4, organism.population);
+            }
+
+            getTotalPopulation() {
+                return this.organisms.reduce((total, org) => total + org.population, 0);
+            }
+
+            getDistance(org1, org2) {
+                const dx = org2.x - org1.x;
+                const dy = org2.y - org1.y;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            drawEnergyFlows() {
+                // Draw energy flow from sun to producers to consumers
+                const sunX = this.canvas.width - 100;
+                const sunY = 80;
+                
+                this.organisms.forEach(organism => {
+                    if (organism.species === 'prey') {
+                        // Solar energy to prey (photosynthesis simulation)
+                        this.ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(sunX, sunY);
+                        this.ctx.lineTo(organism.x, organism.y);
+                        this.ctx.stroke();
+                        
+                        // Energy particles
+                        for (let i = 0; i < 3; i++) {
+                            const t = (this.time * 0.05 + i) % 1;
+                            const x = sunX + (organism.x - sunX) * t;
+                            const y = sunY + (organism.y - sunY) * t;
+                            
+                            this.ctx.fillStyle = 'rgba(255, 215, 0, 0.7)';
+                            this.ctx.beginPath();
+                            this.ctx.arc(x, y, 2, 0, Math.PI * 2);
+                            this.ctx.fill();
+                        }
+                    }
+                });
+                
+                // Predator-prey energy transfer
+                this.organisms.forEach(predator => {
+                    if (predator.species === 'predator') {
+                        this.organisms.forEach(prey => {
+                            if (prey.species === 'prey' && this.getDistance(predator, prey) < 100) {
+                                this.ctx.strokeStyle = 'rgba(255, 107, 107, 0.2)';
+                                this.ctx.lineWidth = 1;
+                                this.ctx.beginPath();
+                                this.ctx.moveTo(prey.x, prey.y);
+                                this.ctx.lineTo(predator.x, predator.y);
+                                this.ctx.stroke();
+                            }
+                        });
+                    }
+                });
+            }
+
+            createInitialParticles() {
+                for (let i = 0; i < 50; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                        life: Math.random() * 100 + 50,
+                        maxLife: 150,
+                        color: this.getRandomColor()
+                    });
+                }
+            }
+
+            addParticleEffect(x, y) {
+                for (let i = 0; i < 10; i++) {
+                    this.particles.push({
+                        x: x + (Math.random() - 0.5) * 20,
+                        y: y + (Math.random() - 0.5) * 20,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: (Math.random() - 0.5) * 4,
+                        life: 30,
+                        maxLife: 30,
+                        color: '#4ecdc4'
+                    });
+                }
+            }
+
+            updateParticles() {
+                this.particles = this.particles.filter(particle => {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.life--;
+                    
+                    const alpha = particle.life / particle.maxLife;
+                    this.ctx.fillStyle = `rgba(78, 205, 196, ${alpha * 0.7})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    return particle.life > 0;
+                });
+            }
+
+            getRandomColor() {
+                const colors = ['#4ecdc4', '#ff6b6b', '#feca57', '#48cae4', '#f72585'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            drawQuantumEffects() {
+                // Quantum field fluctuations
+                this.ctx.strokeStyle = 'rgba(78, 205, 196, 0.1)';
+                this.ctx.lineWidth = 1;
+                
+                for (let x = 0; x < this.canvas.width; x += 20) {
+                    for (let y = 0; y < this.canvas.height; y += 20) {
+                        const fluctuation = Math.sin(this.time * 0.01 + x * 0.01 + y * 0.01) * 5;
+                        this.ctx.beginPath();
+                        this.ctx.arc(x, y, Math.abs(fluctuation), 0, Math.PI * 2);
+                        this.ctx.stroke();
+                    }
+                }
+            }
+
+            triggerCascadeEffects() {
+                // Update cascade effects based on current dimension
+                this.updateCascadeDisplay();
+                this.updateDimensionalStats();
+            }
+
+            updateCascadeDisplay() {
+                const effects = {
+                    atomic: [
+                        '⚗️ Molecular: Bond formation probability changed',
+                        '🧪 Chemical: New reaction pathways opened',
+                        '🦠 Cellular: Metabolic efficiency altered',
+                        '🌍 Ecosystem: Elemental cycling affected'
+                    ],
+                    molecular: [
+                        '🔥 Kinetics: Reaction rates modified',
+                        '🦠 Biology: Cellular processes impacted',
+                        '🌱 Ecology: Nutrient availability changed',
+                        '🌡️ Climate: Atmospheric composition shifted'
+                    ],
+                    cellular: [
+                        '🧬 Genetics: Evolution rate accelerated',
+                        '🦋 Population: Growth dynamics altered',
+                        '🌿 Environment: Resource consumption changed',
+                        '🔄 Cycles: Biogeochemical flows modified'
+                    ],
+                    ecosystem: [
+                        '🌍 Global: Climate patterns shifting',
+                        '💨 Atmosphere: Gas concentrations changing',
+                        '🌊 Hydrosphere: Water cycle intensity modified',
+                        '🗻 Geosphere: Weathering rates affected'
+                    ]
+                };
+                
+                const container = document.querySelector(`#${this.currentDimension}Controls .cascade-effects div`);
+                if (container) {
+                    container.innerHTML = effects[this.currentDimension]
+                        .map(effect => `<div class="effect-item">${effect}</div>`)
+                        .join('');
+                }
+            }
+
+            updateDimensionalStats() {
+                const stats = this.calculateDimensionalStats();
+                document.getElementById('stabilityValue').textContent = `${stats.stability}%`;
+                document.getElementById('complexityValue').textContent = stats.complexity;
+                document.getElementById('efficiencyValue').textContent = `${stats.efficiency}%`;
+                document.getElementById('innovationValue').textContent = stats.innovation;
+            }
+
+            calculateDimensionalStats() {
+                const totalEntities = this.atoms.length + this.molecules.length + this.cells.length + this.organisms.length;
+                
+                return {
+                    stability: Math.max(0, Math.min(100, 100 - totalEntities * 2)),
+                    complexity: totalEntities,
+                    efficiency: Math.max(0, Math.min(100, 60 + totalEntities * 3)),
+                    innovation: ['🔥', '⚡', '💎', '🌟', '💥'][Math.floor(Math.random() * 5)]
+                };
+            }
+
+            addDiscovery(text) {
+                this.discoveries.unshift({
+                    text: text,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                
+                if (this.discoveries.length > 10) {
+                    this.discoveries.pop();
+                }
+                
+                this.updateDiscoveryLog();
+            }
+
+            updateDiscoveryLog() {
+                const log = document.getElementById('discoveryLog');
+                log.innerHTML = this.discoveries
+                    .map(discovery => `<div class="discovery-item">${discovery.timestamp}: ${discovery.text}</div>`)
+                    .join('');
+            }
+
+            animate() {
+                this.time++;
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw current dimension
+                switch(this.currentDimension) {
+                    case 'atomic':
+                        this.drawAtomicDimension();
+                        break;
+                    case 'molecular':
+                        this.drawMolecularDimension();
+                        break;
+                    case 'cellular':
+                        this.drawCellularDimension();
+                        break;
+                    case 'ecosystem':
+                        this.drawEcosystemDimension();
+                        break;
+                }
+                
+                // Update and draw particles
+                this.updateParticles();
+                
+                requestAnimationFrame(() => this.animate());
+            }
+
+            startAnimation() {
+                this.animate();
+            }
+        }
+
+        // Global portal instance
+        let portal;
+
+        window.onload = function() {
+            portal = new ScientificDimensionPortal();
+        };
+
+        function switchDimension(dimension) {
+            portal.currentDimension = dimension;
+            
+            // Update active button
+            document.querySelectorAll('.dimension-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Show appropriate controls
+            document.querySelectorAll('.dimension-controls').forEach(control => {
+                control.style.display = 'none';
+            });
+            document.getElementById(`${dimension}Controls`).style.display = 'block';
+            
+            portal.addDiscovery(`🌌 Switched to ${dimension} dimension`);
+            portal.triggerCascadeEffects();
+        }
+
+        function selectElement(element) {
+            portal.atomicProperties.selectedElement = element;
+            
+            // Update element data
+            const elementData = {
+                'H': { protons: 1, neutrons: 0, electrons: 1 },
+                'He': { protons: 2, neutrons: 2, electrons: 2 },
+                'Li': { protons: 3, neutrons: 4, electrons: 3 },
+                'C': { protons: 6, neutrons: 6, electrons: 6 },
+                'N': { protons: 7, neutrons: 7, electrons: 7 },
+                'O': { protons: 8, neutrons: 8, electrons: 8 }
+            };
+            
+            if (elementData[element]) {
+                const data = elementData[element];
+                portal.atomicProperties.protons = data.protons;
+                portal.atomicProperties.neutrons = data.neutrons;
+                portal.atomicProperties.electrons = data.electrons;
+                
+                // Update sliders
+                document.getElementById('protonSlider').value = data.protons;
+                document.getElementById('neutronSlider').value = data.neutrons;
+                document.getElementById('electronSlider').value = data.electrons;
+                
+                updateAtomicProperties();
+            }
+            
+            // Update selection
+            document.querySelectorAll('.element-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+
+        function selectMolecule(molecule) {
+            portal.molecularProperties.selectedMolecule = molecule;
+            
+            document.querySelectorAll('#molecularControls .element-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+
+        function updateAtomicProperties() {
+            portal.atomicProperties.protons = parseInt(document.getElementById('protonSlider').value);
+            portal.atomicProperties.neutrons = parseInt(document.getElementById('neutronSlider').value);
+            portal.atomicProperties.electrons = parseInt(document.getElementById('electronSlider').value);
+            
+            document.getElementById('protonValue').textContent = portal.atomicProperties.protons;
+            document.getElementById('neutronValue').textContent = portal.atomicProperties.neutrons;
+            document.getElementById('electronValue').textContent = portal.atomicProperties.electrons;
+            
+            portal.triggerCascadeEffects();
+        }
+
+        function updateMolecularProperties() {
+            portal.molecularProperties.temperature = parseFloat(document.getElementById('tempSlider').value);
+            portal.molecularProperties.pressure = parseFloat(document.getElementById('pressureSlider').value);
+            
+            document.getElementById('tempValue').textContent = portal.molecularProperties.temperature;
+            document.getElementById('pressureValue').textContent = portal.molecularProperties.pressure;
+            
+            portal.triggerCascadeEffects();
+        }
+
+        function updateCellularProperties() {
+            portal.cellularProperties.atpProduction = parseFloat(document.getElementById('atpSlider').value);
+            portal.cellularProperties.mutationRate = parseFloat(document.getElementById('mutationSlider').value);
+            portal.cellularProperties.divisionRate = parseFloat(document.getElementById('divisionSlider').value);
+            
+            document.getElementById('atpValue').textContent = portal.cellularProperties.atpProduction;
+            document.getElementById('mutationValue').textContent = portal.cellularProperties.mutationRate;
+            document.getElementById('divisionValue').textContent = portal.cellularProperties.divisionRate;
+            
+            portal.triggerCascadeEffects();
+        }
+
+        function updateEcosystemProperties() {
+            portal.ecosystemProperties.solarEnergy = parseFloat(document.getElementById('solarSlider').value);
+            portal.ecosystemProperties.predatorPreyRatio = parseFloat(document.getElementById('ratioSlider').value);
+            portal.ecosystemProperties.carryingCapacity = parseFloat(document.getElementById('capacitySlider').value);
+            
+            document.getElementById('solarValue').textContent = portal.ecosystemProperties.solarEnergy;
+            document.getElementById('ratioValue').textContent = portal.ecosystemProperties.predatorPreyRatio;
+            document.getElementById('capacityValue').textContent = portal.ecosystemProperties.carryingCapacity;
+            
+            portal.triggerCascadeEffects();
+        }
+
+        function randomizeCurrentDimension() {
+            switch(portal.currentDimension) {
+                case 'atomic':
+                    document.getElementById('protonSlider').value = Math.floor(Math.random() * 20) + 1;
+                    document.getElementById('neutronSlider').value = Math.floor(Math.random() * 25);
+                    document.getElementById('electronSlider').value = Math.floor(Math.random() * 20) + 1;
+                    updateAtomicProperties();
+                    break;
+                case 'molecular':
+                    document.getElementById('tempSlider').value = Math.floor(Math.random() * 300) + 200;
+                    document.getElementById('pressureSlider').value = (Math.random() * 4.9 + 0.1).toFixed(1);
+                    updateMolecularProperties();
+                    break;
+                case 'cellular':
+                    document.getElementById('atpSlider').value = Math.floor(Math.random() * 150) + 50;
+                    document.getElementById('mutationSlider').value = (Math.random() * 0.99 + 0.01).toFixed(2);
+                    document.getElementById('divisionSlider').value = Math.floor(Math.random() * 60) + 12;
+                    updateCellularProperties();
+                    break;
+                case 'ecosystem':
+                    document.getElementById('solarSlider').value = Math.floor(Math.random() * 100) + 50;
+                    document.getElementById('ratioSlider').value = (Math.random() * 0.45 + 0.05).toFixed(2);
+                    document.getElementById('capacitySlider').value = Math.floor(Math.random() * 1500) + 500;
+                    updateEcosystemProperties();
+                    break;
+            }
+            
+            portal.addDiscovery(`🎲 ${portal.currentDimension} dimension randomized!`);
+        }
+
+        function resetDimension() {
+            switch(portal.currentDimension) {
+                case 'atomic':
+                    portal.atoms = [];
+                    break;
+                case 'molecular':
+                    portal.molecules = [];
+                    break;
+                case 'cellular':
+                    portal.cells = [];
+                    break;
+                case 'ecosystem':
+                    portal.organisms = [];
+                    break;
+            }
+            
+            portal.addDiscovery(`🔄 ${portal.currentDimension} dimension reset!`);
+        }
+
+        function saveReality() {
+            const reality = {
+                atoms: portal.atoms,
+                molecules: portal.molecules,
+                cells: portal.cells,
+                organisms: portal.organisms,
+                properties: {
+                    atomic: portal.atomicProperties,
+                    molecular: portal.molecularProperties,
+                    cellular: portal.cellularProperties,
+                    ecosystem: portal.ecosystemProperties
+                },
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem('scientificReality', JSON.stringify(reality));
+            portal.addDiscovery('💾 Reality saved to quantum storage!');
+        }
+
+        function loadReality() {
+            const savedReality = localStorage.getItem('scientificReality');
+            if (savedReality) {
+                const reality = JSON.parse(savedReality);
+                
+                portal.atoms = reality.atoms || [];
+                portal.molecules = reality.molecules || [];
+                portal.cells = reality.cells || [];
+                portal.organisms = reality.organisms || [];
+                
+                if (reality.properties) {
+                    portal.atomicProperties = reality.properties.atomic || portal.atomicProperties;
+                    portal.molecularProperties = reality.properties.molecular || portal.molecularProperties;
+                    portal.cellularProperties = reality.properties.cellular || portal.cellularProperties;
+                    portal.ecosystemProperties = reality.properties.ecosystem || portal.ecosystemProperties;
+                }
+                
+                portal.addDiscovery('📁 Reality loaded from quantum storage!');
+            } else {
+                portal.addDiscovery('⚠️ No saved reality found in quantum storage!');
+            }
+        }
+    </script>
+</body>
+</html>
