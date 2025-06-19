@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harmonic-Graphs</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: sans-serif;
+    }
+    #controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 8px;
+    }
+    #graph {
+      border: 1px solid #ccc;
+      width: 600px;
+      height: 300px;
+    }
+    label {
+      font-size: 14px;
+    }
+    input[type="text"] {
+      width: 120px;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <label>f(x):
+      <input id="funcInput" type="text" value="Math.sin(x)" />
+    </label>
+    <label>a:
+      <input id="minInput" type="number" value="-3.14" step="0.1" />
+    </label>
+    <label>b:
+      <input id="maxInput" type="number" value="3.14" step="0.1" />
+    </label>
+    <label>Speed:
+      <input id="speedInput" type="range" min="0.2" max="4"
+        step="0.1" value="1" />
+    </label>
+    <button id="updateBtn">Update</button>
+    <button id="playBtn">Play</button>
+    <button id="stopBtn">Stop</button>
+  </div>
+  <canvas id="graph"></canvas>
+  <script>
+    window.addEventListener('load', () => {
+      const canvas = document.getElementById('graph')
+      const ctx = canvas.getContext('2d')
+      const funcInput = document.getElementById('funcInput')
+      const minInput = document.getElementById('minInput')
+      const maxInput = document.getElementById('maxInput')
+      const speedInput = document.getElementById('speedInput')
+      const updateBtn = document.getElementById('updateBtn')
+      const playBtn = document.getElementById('playBtn')
+      const stopBtn = document.getElementById('stopBtn')
+      const audioCtx = new (window.AudioContext ||
+        window.webkitAudioContext)()
+      let bufferSource = null
+      let audioBuffer = null
+      const duration = 1 // seconds
+
+      function updateGraph() {
+        const expr = funcInput.value
+        let f
+        try {
+          f = new Function('x', 'with(Math){return ' + expr + '}')
+        } catch (e) {
+          alert('Invalid function')
+          return
+        }
+        const a = parseFloat(minInput.value)
+        const b = parseFloat(maxInput.value)
+        const steps = 512
+        const xs = new Float32Array(steps)
+        const ys = new Float32Array(steps)
+        let maxY = 0
+
+        for (let i = 0; i < steps; i++) {
+          const x = a + (b - a) * (i / (steps - 1))
+          let y = 0
+          try {
+            y = f(x)
+          } catch (e) {}
+          xs[i] = x
+          ys[i] = y
+          maxY = Math.max(maxY, Math.abs(y))
+        }
+        if (maxY === 0) maxY = 1
+
+        const w = canvas.clientWidth
+        const h = canvas.clientHeight
+        canvas.width = w
+        canvas.height = h
+        ctx.clearRect(0, 0, w, h)
+
+        // axes
+        ctx.strokeStyle = '#ccc'
+        ctx.beginPath()
+        const x0 = ((0 - a) / (b - a)) * w
+        ctx.moveTo(x0, 0)
+        ctx.lineTo(x0, h)
+        const y0 = h / 2
+        ctx.moveTo(0, y0)
+        ctx.lineTo(w, y0)
+        ctx.stroke()
+
+        // graph
+        ctx.strokeStyle = '#000'
+        ctx.beginPath()
+        for (let i = 0; i < steps; i++) {
+          const px = ((xs[i] - a) / (b - a)) * w
+          const py = h / 2 - (ys[i] / maxY) * (h / 2)
+          if (i === 0) ctx.moveTo(px, py)
+          else ctx.lineTo(px, py)
+        }
+        ctx.stroke()
+
+        // build audio buffer
+        const sr = audioCtx.sampleRate
+        const len = sr * duration
+        const buf = audioCtx.createBuffer(1, len, sr)
+        const data = buf.getChannelData(0)
+        for (let i = 0; i < len; i++) {
+          const x = a + (b - a) * (i / (len - 1))
+          let y = 0
+          try {
+            y = f(x)
+          } catch (e) {}
+          data[i] = y / maxY
+        }
+        audioBuffer = buf
+      }
+
+      updateBtn.addEventListener('click', updateGraph)
+
+      playBtn.addEventListener('click', () => {
+        if (!audioBuffer) return
+        if (bufferSource) bufferSource.stop()
+        bufferSource = audioCtx.createBufferSource()
+        bufferSource.buffer = audioBuffer
+        bufferSource.loop = true
+        bufferSource.playbackRate.value = parseFloat(
+          speedInput.value
+        )
+        bufferSource.connect(audioCtx.destination)
+        bufferSource.start()
+      })
+
+      stopBtn.addEventListener('click', () => {
+        if (bufferSource) {
+          bufferSource.stop()
+          bufferSource = null
+        }
+      })
+
+      updateGraph()
+    })
+  </script>
+</body>
+</html>
