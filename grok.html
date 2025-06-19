@@ -36,6 +36,10 @@
       padding: 10px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 5px;
+      cursor: pointer;
+    }
+    .codex-item:hover {
+      background: rgba(255, 255, 255, 0.2);
     }
     #modal {
       display: none;
@@ -49,7 +53,7 @@
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
       text-align: center;
       z-index: 1000;
-      max-width: 400px;
+      max-width: 450px;
       width: 90%;
     }
     #modal input {
@@ -81,6 +85,23 @@
       background: rgba(0, 0, 0, 0.7);
       z-index: 999;
     }
+    #feedback {
+      position: fixed;
+      top: 20px;
+      right: 270px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 20px;
+      border-radius: 5px;
+      color: #ffd700;
+      display: none;
+      z-index: 100;
+      animation: fadeOut 2s forwards;
+    }
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      70% { opacity: 1; }
+      100% { opacity: 0; }
+    }
   </style>
 </head>
 <body>
@@ -89,8 +110,9 @@
     <div id="sidebar">
       <h2>Math Codex</h2>
       <div id="codex">
-        <div class="codex-item">Linear Equations - Unlocked</div>
-        <div class="codex-item" id="geometry">Geometry - Locked</div>
+        <div class="codex-item" onclick="showInfo('linear')">Linear Equations - Unlocked</div>
+        <div class="codex-item" id="geometry" onclick="showInfo('geometry')">Geometry - Locked</div>
+        <div class="codex-item" id="quadratic" onclick="showInfo('quadratic')">Quadratics - Locked</div>
       </div>
     </div>
   </div>
@@ -102,6 +124,7 @@
     <br>
     <button onclick="submitAnswer()">Submit</button>
   </div>
+  <div id="feedback">Garden Grows!</div>
 
   <script>
     const canvas = document.getElementById('gardenCanvas');
@@ -112,6 +135,7 @@
     const problemTitle = document.getElementById('problemTitle');
     const problemText = document.getElementById('problemText');
     const answerInput = document.getElementById('answer');
+    const feedback = document.getElementById('feedback');
 
     // Canvas dimensions match container size
     canvas.width = window.innerWidth - 250;
@@ -126,6 +150,7 @@
     let garden = {
       plants: [],
       withered: [],
+      artifacts: [],
       offsetX: 0,
       offsetY: 0,
       dragging: false,
@@ -134,6 +159,7 @@
     };
     let currentProblem = null;
     let solvedCount = 0;
+    let animationFrames = [];
 
     // Math problems database
     const problems = [
@@ -159,7 +185,7 @@
       },
       {
         id: 2,
-        title: "Geometry",
+        title: "Geometry: Area",
         text: "Find the area of a triangle with base 6 and height 4.",
         answer: 12,
         type: "geometry",
@@ -167,20 +193,60 @@
         y: 150,
         solved: false,
         locked: true
+      },
+      {
+        id: 3,
+        title: "Geometry: Angles",
+        text: "Find the missing angle in a triangle with angles 50° and 60°.",
+        answer: 70,
+        type: "geometry",
+        x: 400,
+        y: 250,
+        solved: false,
+        locked: true
+      },
+      {
+        id: 4,
+        title: "Quadratic Equation",
+        text: "Solve for x (smaller root): \( x^2 - 5x + 6 = 0 \)",
+        answer: 2,
+        type: "quadratic",
+        x: 500,
+        y: 200,
+        solved: false,
+        locked: true
       }
     ];
 
-    // Initialize garden with problem nodes
+    // Codex info
+    const codexInfo = {
+      linear: {
+        title: "Linear Equations",
+        text: "Equations of the form ax + b = c. Solve for x by isolating the variable."
+      },
+      geometry: {
+        title: "Geometry",
+        text: "Locked. Solve more problems to unlock insights on shapes and angles."
+      },
+      quadratic: {
+        title: "Quadratic Equations",
+        text: "Locked. Solve more problems to unlock parabolic mysteries."
+      }
+    };
+
+    // Initialize garden with problem nodes and an artifact
     problems.forEach(p => {
       if (!p.locked) {
         garden.plants.push({
           x: p.x,
           y: p.y,
           type: 'bud',
-          problemId: p.id
+          problemId: p.id,
+          scale: 1
         });
       }
     });
+    garden.artifacts.push({ x: 150, y: 300, discovered: false, text: "π ≈ 3.14159: Used in circles and waves!" });
 
     // Draw garden
     function drawGarden() {
@@ -189,47 +255,79 @@
       ctx.fillStyle = 'rgb(30, 30, 50)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       drawTerrain();
-      // Draw plants and withered areas
-      garden.withered.forEach(w => drawPlant(w.x, w.y, 'withered'));
-      garden.plants.forEach(p => drawPlant(p.x + garden.offsetX, p.y + garden.offsetY, p.type));
+      // Draw withered areas, plants, and artifacts
+      garden.withered.forEach(w => drawPlant(w.x + garden.offsetX, w.y + garden.offsetY, 'withered', 1));
+      garden.plants.forEach(p => drawPlant(p.x + garden.offsetX, p.y + garden.offsetY, p.type, p.scale));
+      garden.artifacts.forEach(a => drawArtifact(a.x + garden.offsetX, a.y + garden.offsetY, a.discovered));
+      // Process animations
+      animationFrames = animationFrames.filter(anim => {
+        anim.frame++;
+        anim.callback(anim.frame);
+        return anim.frame < anim.duration;
+      });
     }
 
     function drawTerrain() {
-      // Simple procedural terrain using lines with surreal colors
-      ctx.strokeStyle = 'rgba(100, 50, 150, 0.5)';
-      ctx.lineWidth = 2;
-      for (let i = 0; i < 10; i++) {
-        ctx.beginPath();
-        ctx.moveTo(0, i * 100 + garden.offsetY % 100);
-        for (let x = 0; x < canvas.width; x += 50) {
-          let y = i * 100 + Math.sin((x + garden.offsetX) * 0.01 + i) * 30 + garden.offsetY % 100;
-          ctx.lineTo(x, y);
+      // Enhanced procedural terrain with multiple layers
+      for (let layer = 0; layer < 3; layer++) {
+        ctx.strokeStyle = `rgba(${80 + layer * 20}, 50, ${120 + layer * 30}, 0.3)`;
+        ctx.lineWidth = 2 + layer;
+        for (let i = 0; i < 8; i++) {
+          ctx.beginPath();
+          ctx.moveTo(0, i * 120 + garden.offsetY % 120 + layer * 10);
+          for (let x = 0; x < canvas.width; x += 50) {
+            let y = i * 120 + Math.sin((x + garden.offsetX) * (0.01 + layer * 0.002) + i + layer) * (20 + layer * 10) + garden.offsetY % 120 + layer * 10;
+            ctx.lineTo(x, y);
+          }
+          ctx.stroke();
         }
-        ctx.stroke();
       }
     }
 
-    function drawPlant(x, y, type) {
+    function drawPlant(x, y, type, scale) {
       ctx.save();
       ctx.translate(x, y);
+      ctx.scale(scale, scale);
       if (type === 'bud') {
         ctx.fillStyle = 'rgb(255, 100, 100)';
         ctx.beginPath();
         ctx.arc(0, 0, 10, 0, Math.PI * 2);
         ctx.fill();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.beginPath();
+        ctx.arc(0, 0, 12, 0, Math.PI * 2);
+        ctx.stroke();
       } else if (type === 'linear') {
         ctx.fillStyle = 'rgb(100, 255, 100)';
         ctx.beginPath();
         ctx.moveTo(0, -20);
-        ctx.lineTo(10, 20);
-        ctx.lineTo(-10, 20);
+        ctx.lineTo(15, 20);
+        ctx.lineTo(-15, 20);
         ctx.closePath();
         ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.stroke();
       } else if (type === 'geometry') {
         ctx.fillStyle = 'rgb(100, 200, 255)';
         ctx.beginPath();
-        ctx.rect(-15, -15, 30, 30);
+        ctx.moveTo(0, -20);
+        ctx.lineTo(20, 10);
+        ctx.lineTo(-20, 10);
+        ctx.closePath();
         ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.stroke();
+      } else if (type === 'quadratic') {
+        ctx.fillStyle = 'rgb(255, 150, 255)';
+        ctx.beginPath();
+        ctx.moveTo(-20, 20);
+        ctx.quadraticCurveTo(0, -25, 20, 20);
+        ctx.lineTo(20, 25);
+        ctx.lineTo(-20, 25);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.stroke();
       } else if (type === 'withered') {
         ctx.fillStyle = 'rgb(80, 80, 80)';
         ctx.beginPath();
@@ -237,6 +335,29 @@
         ctx.fill();
       }
       ctx.restore();
+    }
+
+    function drawArtifact(x, y, discovered) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = discovered ? 'rgb(255, 215, 0)' : 'rgb(150, 150, 150)';
+      ctx.beginPath();
+      ctx.moveTo(0, -10);
+      for (let i = 0; i < 5; i++) {
+        let angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+        ctx.lineTo(Math.cos(angle) * 10, Math.sin(angle) * 10);
+        angle += Math.PI / 5;
+        ctx.lineTo(Math.cos(angle) * 5, Math.sin(angle) * 5);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Animation helper
+    function animate(duration, callback) {
+      animationFrames.push({ frame: 0, duration, callback });
+      requestAnimationFrame(drawGarden);
     }
 
     // Mouse and keyboard interaction
@@ -263,7 +384,7 @@
       let rect = canvas.getBoundingClientRect();
       let x = e.clientX - rect.left - garden.offsetX;
       let y = e.clientY - rect.top - garden.offsetY;
-      checkPlantClick(x, y);
+      checkPlantClick(x, y) || checkArtifactClick(x, y);
     });
     window.addEventListener('keydown', (e) => {
       if (modal.style.display === 'block') return;
@@ -282,10 +403,24 @@
           let problem = problems.find(p => p.id === plant.problemId);
           if (problem) {
             openProblemModal(problem);
-            break;
+            return true;
           }
         }
       }
+      return false;
+    }
+
+    function checkArtifactClick(x, y) {
+      for (let artifact of garden.artifacts) {
+        let dist = Math.sqrt((artifact.x - x) ** 2 + (artifact.y - y) ** 2);
+        if (dist < 15 && !artifact.discovered) {
+          artifact.discovered = true;
+          openArtifactModal(artifact);
+          drawGarden();
+          return true;
+        }
+      }
+      return false;
     }
 
     function openProblemModal(problem) {
@@ -297,28 +432,50 @@
       overlay.style.display = 'block';
     }
 
+    function openArtifactModal(artifact) {
+      currentProblem = null;
+      problemTitle.textContent = "Math Artifact Discovered!";
+      problemText.textContent = artifact.text;
+      answerInput.style.display = 'none';
+      modal.style.display = 'block';
+      overlay.style.display = 'block';
+      setTimeout(closeModal, 3000);
+    }
+
     function submitAnswer() {
       let answer = parseFloat(answerInput.value);
       if (answer === currentProblem.answer) {
         solvedCount++;
         currentProblem.solved = true;
-        // Update garden
+        // Update garden with animation
         let plant = garden.plants.find(p => p.problemId === currentProblem.id);
         if (plant) {
           plant.type = currentProblem.type;
+          plant.scale = 0.1;
+          animate(30, (frame) => {
+            plant.scale = frame / 30;
+            drawGarden();
+          });
         }
+        // Show feedback
+        feedback.textContent = "Garden Grows!";
+        feedback.style.display = 'block';
+        setTimeout(() => feedback.style.display = 'none', 2000);
         // Unlock new concepts
-        if (solvedCount >= 2) {
-          unlockGeometry();
-        }
+        if (solvedCount >= 2) unlockGeometry();
+        if (solvedCount >= 4) unlockQuadratic();
         closeModal();
         drawGarden();
       } else {
         // Add withered area
+        let plant = garden.plants.find(p => p.problemId === currentProblem.id);
         garden.withered.push({
-          x: garden.plants.find(p => p.problemId === currentProblem.id).x + garden.offsetX,
-          y: garden.plants.find(p => p.problemId === currentProblem.id).y + garden.offsetY
+          x: plant.x,
+          y: plant.y
         });
+        feedback.textContent = "Garden Withers...";
+        feedback.style.display = 'block';
+        setTimeout(() => feedback.style.display = 'none', 2000);
         closeModal();
         drawGarden();
         alert("Incorrect. A part of your garden has withered. Try again!");
@@ -328,21 +485,48 @@
     function closeModal() {
       modal.style.display = 'none';
       overlay.style.display = 'none';
+      answerInput.style.display = 'inline-block';
       currentProblem = null;
     }
 
     function unlockGeometry() {
-      let geoProblem = problems.find(p => p.type === 'geometry');
-      if (!geoProblem.solved && geoProblem.locked) {
-        geoProblem.locked = false;
+      let geoProblems = problems.filter(p => p.type === 'geometry' && p.locked);
+      geoProblems.forEach(p => {
+        p.locked = false;
         garden.plants.push({
-          x: geoProblem.x,
-          y: geoProblem.y,
+          x: p.x,
+          y: p.y,
           type: 'bud',
-          problemId: geoProblem.id
+          problemId: p.id,
+          scale: 1
         });
-        document.getElementById('geometry').textContent = 'Geometry - Unlocked';
+      });
+      document.getElementById('geometry').textContent = 'Geometry - Unlocked';
+      codexInfo.geometry.text = "Study of shapes, sizes, and angles. Essential for understanding space.";
+    }
+
+    function unlockQuadratic() {
+      let quadProblem = problems.find(p => p.type === 'quadratic' && p.locked);
+      if (quadProblem) {
+        quadProblem.locked = false;
+        garden.plants.push({
+          x: quadProblem.x,
+          y: quadProblem.y,
+          type: 'bud',
+          problemId: quadProblem.id,
+          scale: 1
+        });
+        document.getElementById('quadratic').textContent = 'Quadratics - Unlocked';
+        codexInfo.quadratic.text = "Equations with x² terms. Graphs form parabolas with unique properties.";
       }
+    }
+
+    function showInfo(type) {
+      problemTitle.textContent = codexInfo[type].title;
+      problemText.textContent = codexInfo[type].text;
+      answerInput.style.display = 'none';
+      modal.style.display = 'block';
+      overlay.style.display = 'block';
     }
 
     // Initial draw
