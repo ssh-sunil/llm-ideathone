@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChronoSphere: Time Merchant Academy</title>
+    <title>ChronoSphere: Temporal Artifact Hunter</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -12,40 +14,646 @@
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
-            color: white;
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0c0c0c, #1a1a2e, #16213e);
+            color: #ffffff;
             overflow-x: hidden;
-            animation: cosmicBackground 20s ease-in-out infinite;
+            position: relative;
         }
 
-        @keyframes cosmicBackground {
-            0%, 100% { background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460); }
-            50% { background: linear-gradient(45deg, #0f3460, #533483, #7209b7); }
+        .cosmic-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(255,215,0,0.1) 0%, transparent 70%);
+            animation: cosmicPulse 10s ease-in-out infinite;
+            z-index: -2;
+        }
+
+        @keyframes cosmicPulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .main-title {
+            font-family: 'Cinzel', serif;
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #00d4ff, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            animation: titleGlow 4s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(255,215,0,0.5);
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { 
+                filter: drop-shadow(0 0 20px rgba(255,215,0,0.7));
+                transform: scale(1);
+            }
+            50% { 
+                filter: drop-shadow(0 0 40px rgba(255,107,53,0.9));
+                transform: scale(1.02);
+            }
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .mission-briefing {
+            background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,107,53,0.1));
+            border: 2px solid rgba(255,215,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            animation: briefingPulse 6s ease-in-out infinite;
+        }
+
+        @keyframes briefingPulse {
+            0%, 100% { border-color: rgba(255,215,0,0.3); }
+            50% { border-color: rgba(255,107,53,0.6); }
+        }
+
+        .chronosphere-hub {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 40px 0;
             position: relative;
         }
 
         .chronosphere {
-            width: 150px;
-            height: 150px;
-            margin: 20px auto;
+            width: 200px;
+            height: 200px;
             border-radius: 50%;
-            background: radial-gradient(circle, #ffd700, #ff6b35, #004e92);
+            background: conic-gradient(from 0deg, #ffd700, #ff6b35, #00d4ff, #8a2be2, #ffd700);
             border: 4px solid #00d4ff;
-            animation: spin 8s linear infinite, pulse 2s ease-in-out infinite;
-            box-shadow: 0 0 50px #00d4ff, inset 0 0 30px rgba(255,255,255,0.3);
+            animation: chronoSpin 12s linear infinite, chronoPulse 3s ease-in-out infinite;
+            box-shadow: 
+                0 0 60px rgba(0,212,255,0.6),
+                inset 0 0 40px rgba(255,255,255,0.3);
             cursor: pointer;
-            transition: transform 0.3s ease;
+            transition: all 0.4s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chronosphere::before {
+            content: '⏰';
+            font-size: 4rem;
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(10deg); }
         }
 
         .chronosphere:hover {
+            transform: scale(1.15);
+            box-shadow: 
+                0 0 100px rgba(255,107,53,0.8),
+                inset 0 0 60px rgba(255,255,255,0.5);
+        }
+
+        @keyframes chronoSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes chronoPulse {
+            0%, 100% { 
+                box-shadow: 0 0 60px rgba(0,212,255,0.6), inset 0 0 40px rgba(255,255,255,0.3);
+            }
+            50% { 
+                box-shadow: 0 0 120px rgba(255,107,53,0.8), inset 0 0 60px rgba(255,255,255,0.5);
+            }
+        }
+
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,215,0,0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+            opacity: 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,215,0,0.5);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+            animation: cardShimmer 1.5s ease-in-out;
+        }
+
+        @keyframes cardShimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 8px;
+            animation: statCount 2s ease-out;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @keyframes statCount {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .timeline-explorer {
+            background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(20,20,40,0.3));
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255,215,0,0.2);
+        }
+
+        .timeline-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .era-portal {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border-radius: 20px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            border: 2px solid transparent;
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+
+        .era-portal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,215,0,0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .era-portal:hover::before {
+            transform: translateX(100%);
+        }
+
+        .era-portal:hover {
+            transform: translateY(-10px) rotateY(5deg);
+            border-color: #ffd700;
+            box-shadow: 
+                0 20px 40px rgba(255,215,0,0.3),
+                0 0 60px rgba(255,107,53,0.2);
+        }
+
+        .era-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .era-icon {
+            font-size: 3.5rem;
+            margin-right: 20px;
+            animation: iconBounce 3s ease-in-out infinite;
+        }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(5deg); }
+        }
+
+        .era-info h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+
+        .era-period {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        .era-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .era-locations {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .location-tag {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .era-progress {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .era-rewards {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .exploration-interface {
+            display: none;
+            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(20,20,40,0.8));
+            border-radius: 25px;
+            padding: 40px;
+            backdrop-filter: blur(25px);
+            border: 2px solid rgba(255,215,0,0.3);
+            animation: interfaceSlide 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .exploration-interface.active {
+            display: block;
+        }
+
+        @keyframes interfaceSlide {
+            from { opacity: 0; transform: translateY(50px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .location-scene {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .scene-backdrop {
+            width: 100%;
+            height: 300px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 15px;
+            position: relative;
+            margin-bottom: 25px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .scene-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%);
+            display: flex;
+            align-items: flex-end;
+            padding: 25px;
+        }
+
+        .scene-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 8px;
+        }
+
+        .scene-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .narrative-text {
+            background: rgba(255,255,255,0.05);
+            border-left: 4px solid #ffd700;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .character-dialogue {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(255,215,0,0.1));
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+
+        .character-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-right: 20px;
+            font-size: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, #ffd700, #ff6b35);
+            animation: avatarPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes avatarPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .dialogue-content h4 {
+            color: #ffd700;
+            margin-bottom: 8px;
+            font-family: 'Cinzel', serif;
+        }
+
+        .exploration-choices {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .choice-button {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+            transform: perspective(1000px) rotateY(0deg);
+        }
+
+        .choice-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .choice-button:hover {
+            transform: perspective(1000px) rotateY(5deg) scale(1.02);
+            box-shadow: 0 10px 25px rgba(74,144,226,0.4);
+        }
+
+        .choice-button:hover::before {
+            left: 100%;
+        }
+
+        .choice-button.danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .choice-button.success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .choice-button.mystery {
+            background: linear-gradient(135deg, #8e44ad, #7d3c98);
+        }
+
+        .artifact-discovery {
+            background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,107,53,0.2));
+            border: 2px solid #ffd700;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            margin: 20px 0;
+            animation: artifactGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes artifactGlow {
+            0%, 100% { 
+                border-color: #ffd700;
+                box-shadow: 0 0 30px rgba(255,215,0,0.3);
+            }
+            50% { 
+                border-color: #ff6b35;
+                box-shadow: 0 0 50px rgba(255,107,53,0.5);
+            }
+        }
+
+        .artifact-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: artifactFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes artifactFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(10deg); }
+        }
+
+        .inventory-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,215,0,0.3);
+            max-width: 300px;
+            z-index: 1000;
+        }
+
+        .inventory-title {
+            font-family: 'Cinzel', serif;
+            color: #ffd700;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .inventory-items {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .inventory-item {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, rgba(255,215,0,0.2), rgba(255,107,53,0.2));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .inventory-item:hover {
             transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0c0c0c, #1a1a2e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-spinner {
+            width: 100px;
+            height: 100px;
+            border: 4px solid rgba(255,215,0,0.3);
+            border-top: 4px solid #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
         }
 
         @keyframes spin {
@@ -53,600 +661,650 @@
             100% { transform: rotate(360deg); }
         }
 
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 50px #00d4ff, inset 0 0 30px rgba(255,255,255,0.3); }
-            50% { box-shadow: 0 0 80px #ff6b35, inset 0 0 50px rgba(255,255,255,0.5); }
-        }
-
-        .title {
-            text-align: center;
-            font-size: 3rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #ffd700, #ff6b35, #00d4ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-            animation: glow 3s ease-in-out infinite;
-        }
-
-        @keyframes glow {
-            0%, 100% { text-shadow: 0 0 20px rgba(255,215,0,0.5); }
-            50% { text-shadow: 0 0 40px rgba(255,107,53,0.8), 0 0 60px rgba(0,212,255,0.6); }
-        }
-
-        .subtitle {
-            text-align: center;
+        .loading-text {
             font-size: 1.2rem;
-            margin-bottom: 30px;
-            opacity: 0.9;
-        }
-
-        .stats-bar {
-            display: flex;
-            justify-content: space-around;
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            backdrop-filter: blur(10px);
-        }
-
-        .stat {
-            text-align: center;
-            flex: 1;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
             color: #ffd700;
-            animation: countUp 2s ease-out;
+            animation: loadingPulse 2s ease-in-out infinite;
         }
 
-        @keyframes countUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .time-periods {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .period-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            backdrop-filter: blur(15px);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .period-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            transform: rotate(45deg);
-            transition: all 0.5s ease;
-            opacity: 0;
-        }
-
-        .period-card:hover::before {
-            opacity: 1;
-            animation: shimmer 1.5s ease-in-out;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-        }
-
-        .period-card:hover {
-            transform: translateY(-10px) scale(1.05);
-            border-color: #ffd700;
-            box-shadow: 0 15px 40px rgba(255,215,0,0.3);
-        }
-
-        .period-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            display: block;
-        }
-
-        .period-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #ffd700;
-        }
-
-        .period-desc {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            line-height: 1.4;
-        }
-
-        .trading-interface {
-            background: rgba(0,0,0,0.3);
-            border-radius: 20px;
-            padding: 30px;
-            margin-top: 30px;
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
-            display: none;
-        }
-
-        .trading-interface.active {
-            display: block;
-            animation: slideIn 0.5s ease-out;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .question {
-            font-size: 1.3rem;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #ffd700;
-        }
-
-        .options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .option {
-            background: linear-gradient(135deg, #ff6b35, #f7931e);
-            border: none;
-            padding: 15px;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            transform: perspective(1000px) rotateY(0deg);
-        }
-
-        .option:hover {
-            transform: perspective(1000px) rotateY(5deg) scale(1.05);
-            box-shadow: 0 10px 20px rgba(255,107,53,0.4);
-        }
-
-        .option.correct {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            animation: correctAnswer 0.5s ease;
-        }
-
-        .option.wrong {
-            background: linear-gradient(135deg, #f44336, #d32f2f);
-            animation: wrongAnswer 0.5s ease;
-        }
-
-        @keyframes correctAnswer {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes wrongAnswer {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .particle {
-            position: absolute;
-            width: 3px;
-            height: 3px;
-            background: #ffd700;
-            border-radius: 50%;
-            animation: floatParticle 10s linear infinite;
-        }
-
-        @keyframes floatParticle {
-            0% {
-                transform: translateY(100vh) scale(0);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100px) scale(1);
-                opacity: 0;
-            }
-        }
-
-        .success-message {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            z-index: 1000;
-            display: none;
-            animation: successPop 0.5s ease;
-        }
-
-        @keyframes successPop {
-            0% { transform: translate(-50%, -50%) scale(0); }
-            100% { transform: translate(-50%, -50%) scale(1); }
+        @keyframes loadingPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
 
         @media (max-width: 768px) {
-            .title {
-                font-size: 2rem;
+            .main-title {
+                font-size: 2.5rem;
             }
             
-            .time-periods {
+            .timeline-grid {
                 grid-template-columns: 1fr;
             }
             
-            .options {
+            .exploration-choices {
                 grid-template-columns: 1fr;
+            }
+            
+            .inventory-panel {
+                position: relative;
+                right: auto;
+                top: auto;
+                margin: 20px 0;
             }
         }
     </style>
 </head>
 <body>
-    <div class="particles" id="particles"></div>
-    
-    <div class="container">
-        <h1 class="title">ChronoSphere</h1>
-        <p class="subtitle">Time Merchant Academy</p>
-        
-        <div class="chronosphere" id="chronosphere"></div>
-        
-        <div class="stats-bar">
-            <div class="stat">
-                <div class="stat-value" id="coins">0</div>
-                <div>TimeCoins</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value" id="trades">0</div>
-                <div>Successful Trades</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value" id="level">1</div>
-                <div>Merchant Level</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value" id="knowledge">0</div>
-                <div>Historical Knowledge</div>
-            </div>
-        </div>
+    <div class="cosmic-background"></div>
+    <div class="stars" id="stars"></div>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Initializing Temporal Coordinates...</div>
+    </div>
 
-        <div class="time-periods">
-            <div class="period-card" onclick="enterPeriod('ancient')">
-                <span class="period-icon">🏺</span>
-                <h3 class="period-title">Ancient Egypt</h3>
-                <p class="period-desc">Trade papyrus, gold, and spices in the land of pharaohs. Master hieroglyphics and pyramid construction.</p>
-            </div>
-            
-            <div class="period-card" onclick="enterPeriod('medieval')">
-                <span class="period-icon">⚔️</span>
-                <h3 class="period-title">Medieval Europe</h3>
-                <p class="period-desc">Navigate feudalism, trade with knights and merchants. Learn about castles, guilds, and the Black Death.</p>
-            </div>
-            
-            <div class="period-card" onclick="enterPeriod('renaissance')">
-                <span class="period-icon">🎨</span>
-                <h3 class="period-title">Renaissance</h3>
-                <p class="period-desc">Deal with artists, inventors, and explorers. Understand the rebirth of art, science, and exploration.</p>
-            </div>
-            
-            <div class="period-card" onclick="enterPeriod('industrial')">
-                <span class="period-icon">⚙️</span>
-                <h3 class="period-title">Industrial Revolution</h3>
-                <p class="period-desc">Trade in the age of steam and steel. Learn about factories, railways, and social changes.</p>
-            </div>
-            
-            <div class="period-card" onclick="enterPeriod('modern')">
-                <span class="period-icon">🚀</span>
-                <h3 class="period-title">Space Age</h3>
-                <p class="period-desc">Trade in the era of moon landings and computers. Understand the Cold War and technological revolution.</p>
-            </div>
-            
-            <div class="period-card" onclick="enterPeriod('future')">
-                <span class="period-icon">🌌</span>
-                <h3 class="period-title">Future Timeline</h3>
-                <p class="period-desc">Unlock by mastering all eras. Trade with advanced civilizations and shape tomorrow's history.</p>
-            </div>
-        </div>
-
-        <div class="trading-interface" id="tradingInterface">
-            <h2 class="question" id="question">Loading temporal trade opportunity...</h2>
-            <div class="options" id="options"></div>
+    <div class="inventory-panel">
+        <h3 class="inventory-title">🎒 Artifact Collection</h3>
+        <div class="inventory-items" id="inventoryItems">
+            <!-- Artifacts will be populated here -->
         </div>
     </div>
 
-    <div class="success-message" id="successMessage">
-        <h2>🎉 Excellent Trade!</h2>
-        <p>Your historical knowledge secured a profitable deal!</p>
+    <div class="container">
+        <div class="header">
+            <h1 class="main-title">ChronoSphere</h1>
+            <p class="subtitle">Temporal Artifact Hunter</p>
+            <div class="mission-briefing">
+                <p><strong>🔮 MISSION BRIEFING:</strong> You are Dr. Alex Chronos, an elite temporal archaeologist. Use your ChronoSphere to explore legendary historical locations, uncover ancient mysteries, and collect powerful artifacts that shaped human civilization. Each decision affects your destiny!</p>
+            </div>
+        </div>
+
+        <div class="chronosphere-hub">
+            <div class="chronosphere" id="chronosphere" onclick="activateChronoSphere()"></div>
+        </div>
+
+        <div class="stats-dashboard">
+            <div class="stat-card">
+                <span class="stat-icon">💰</span>
+                <div class="stat-value" id="temporalEnergy">1000</div>
+                <div class="stat-label">Temporal Energy</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">🏺</span>
+                <div class="stat-value" id="artifactsFound">0</div>
+                <div class="stat-label">Artifacts Found</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">🌟</span>
+                <div class="stat-value" id="explorerRank">Novice</div>
+                <div class="stat-label">Explorer Rank</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">📜</span>
+                <div class="stat-value" id="mysteriesSolved">0</div>
+                <div class="stat-label">Mysteries Solved</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">🗺️</span>
+                <div class="stat-value" id="locationsExplored">0</div>
+                <div class="stat-label">Locations Explored</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">⚡</span>
+                <div class="stat-value" id="reputationPoints">0</div>
+                <div class="stat-label">Reputation Points</div>
+            </div>
+        </div>
+
+        <div class="timeline-explorer">
+            <h2 class="timeline-title">🌌 Temporal Gateway</h2>
+            <div class="timeline-grid">
+                <div class="era-portal" onclick="enterEra('ancient-egypt')">
+                    <div class="era-header">
+                        <span class="era-icon">🏺</span>
+                        <div class="era-info">
+                            <h3>Ancient Egypt</h3>
+                            <p class="era-period">3100 - 30 BCE</p>
+                        </div>
+                    </div>
+                    <p class="era-description">Explore the legendary pyramids of Giza, decode mysterious hieroglyphs in hidden tombs, and uncover the secrets of pharaohs' treasures. Navigate through ancient temples where gods and mortals once walked together.</p>
+                    <div class="era-locations">
+                        <span class="location-tag">Pyramid of Khufu</span>
+                        <span class="location-tag">Valley of Kings</span>
+                        <span class="location-tag">Temple of Karnak</span>
+                        <span class="location-tag">Alexandria Library</span>
+                    </div>
+                    <div class="era-progress">
+                        <div class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="era-rewards">
+                        <span>🏺 Golden Scarab</span>
+                        <span>⚡ 500 Energy</span>
+                    </div>
+                </div>
+
+                <div class="era-portal" onclick="enterEra('ancient-rome')">
+                    <div class="era-header">
+                        <span class="era-icon">🏛️</span>
+                        <div class="era-info">
+                            <h3>Roman Empire</h3>
+                            <p class="era-period">27 BCE - 476 CE</p>
+                        </div>
+                    </div>
+                    <p class="era-description">Walk through the mighty Colosseum, explore the catacombs beneath Rome, and witness gladiatorial combat. Discover how an empire that ruled the known world left its mark on history through conquest and innovation.</p>
+                    <div class="era-locations">
+                        <span class="location-tag">Colosseum</span>
+                        <span class="location-tag">Roman Forum</span>
+                        <span class="location-tag">Pompeii</span>
+                        <span class="location-tag">Hadrian's Wall</span>
+                    </div>
+                    <div class="era-progress">
+                        <div class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="era-rewards">
+                        <span>⚔️ Caesar's Coin</span>
+                        <span>⚡ 600 Energy</span>
+                    </div>
+                </div>
+
+                <div class="era-portal" onclick="enterEra('medieval')">
+                    <div class="era-header">
+                        <span class="era-icon">🏰</span>
+                        <div class="era-info">
+                            <h3>Medieval Europe</h3>
+                            <p class="era-period">476 - 1453 CE</p>
+                        </div>
+                    </div>
+                    <p class="era-description">Journey through towering castles, join knights on quests for the Holy Grail, and survive the Black Death. Experience the age of chivalry, crusades, and the rise of magnificent cathedrals that touched the heavens.</p>
+                    <div class="era-locations">
+                        <span class="location-tag">Camelot</span>
+                        <span class="location-tag">Notre Dame</span>
+                        <span class="location-tag">Canterbury</span>
+                        <span class="location-tag">Cluny Abbey</span>
+                    </div>
+                    <div class="era-progress">
+                        <div class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="era-rewards">
+                        <span>⚔️ Excalibur Fragment</span>
+                        <span>⚡ 750 Energy</span>
+                    </div>
+                </div>
+
+                <div class="era-portal" onclick="enterEra('renaissance')">
+                    <div class="era-header">
+                        <span class="era-icon">🎨</span>
+                        <div class="era-info">
+                            <h3>Renaissance</h3>
+                            <p class="era-period">1300 - 1600 CE</p>
+                        </div>
+                    </div>
+                    <p class="era-description">Meet Leonardo da Vinci in his workshop, witness Michelangelo painting the Sistine Chapel, and sail with Columbus to the New World. Experience humanity's rebirth through art, science, and exploration.</p>
+                    <div class="era-locations">
+                        <span class="location-tag">Da Vinci's Studio</span>
+                        <span class="location-tag">Sistine Chapel</span>
+                        <span class="location-tag">Florence Markets</span>
+                        <span class="location-tag">Venice Canals</span>
+                    </div>
+                    <div class="era-progress">
+                        <div class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="era-rewards">
+                        <span>🎨 Mona Lisa Sketch</span>
+                        <span>⚡ 900 Energy</span>
+                    </div>
+                </div>
+
+                <div class="era-portal" onclick="enterEra('age-of-exploration')">
+                    <div class="era-header">
+                        <span class="era-icon">🧭</span>
+                        <div class="era-info">
+                            <h3>Age of Exploration</h3>
+                            <p class="era-period">1400 - 1700 CE</p>
+                        </div>
+                    </div>
+                    <p class="era-description">Sail uncharted seas with legendary explorers, discover hidden Mayan temples, and trade exotic spices in bustling ports. Navigate by the stars and uncover civilizations lost to time.</p>
+                    <div class="era-locations">
+                        <span class="location-tag">Machu Picchu</span>
+                        <span class="location-tag">Spice Islands</span>
+                        <span class="location-tag">Cape of Good Hope</span>
+                        <span class="location-tag">Aztec Temples</span>
+                    </div>
+                    <div class="era-progress">
+                        <div class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="era-rewards">
+                        <span>🧭 Magellan's Compass</span>
+                        <span>⚡ 1000 Energy</span>
+                    </div>
+                </div>
+
+                <div class="era-portal" onclick="enterEra('industrial')">
+                    <div class="era-header">
+                        <span class="era-icon">⚙️</span>
+                        <div class="era-info">
+                            <h3>Industrial Revolution</h3>
+                            <p class="era-period">1760 - 1840 CE</p>
+                        </div>
+                    </div>
+                    <p class="era-description">Witness the birth of the modern world in smoky factories, ride the first steam trains, and explore the social upheaval that changed humanity forever. Experience the power of steam and steel.</p>
+                    <div class="era-locations">
+                        <span class="location-tag">Manchester Mills</span>
+                        <span class="location-tag">Steam Foundry</span>
+                        <span class="location-tag">Coal Mines</span>
+                        <span class="location-tag">Railway Station</span>
+                    </div>
+                    <div class="era-progress">
+                        <div class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="era-rewards">
+                        <span>⚙️ Steam Engine Model</span>
+                        <span>⚡ 1200 Energy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="exploration-interface" id="explorationInterface">
+            <div class="location-scene">
+                <div class="scene-backdrop" id="sceneBackdrop">
+                    <div class="scene-overlay">
+                        <div>
+                            <h2 class="scene-title" id="sceneTitle">Loading Location...</h2>
+                            <p class="scene-subtitle" id="sceneSubtitle">Temporal coordinates stabilizing...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="narrative-text" id="narrativeText">
+                Temporal stabilization in progress...
+            </div>
+
+            <div class="character-dialogue" id="characterDialogue" style="display: none;">
+                <div class="character-avatar" id="characterAvatar">👤</div>
+                <div class="dialogue-content">
+                    <h4 id="characterName">Guide</h4>
+                    <p id="characterSpeech">Welcome, time traveler...</p>
+                </div>
+            </div>
+
+            <div class="exploration-choices" id="explorationChoices">
+                <!-- Choices will be populated here -->
+            </div>
+
+            <div class="artifact-discovery" id="artifactDiscovery" style="display: none;">
+                <div class="artifact-icon" id="artifactIcon">💎</div>
+                <h3 id="artifactName">Ancient Artifact</h3>
+                <p id="artifactDescription">You have discovered a mysterious artifact...</p>
+            </div>
+        </div>
     </div>
 
     <script>
+        // Game State Management
         let gameState = {
-            coins: 0,
-            trades: 0,
-            level: 1,
-            knowledge: 0,
-            currentPeriod: null
+            temporalEnergy: 1000,
+            artifactsFound: 0,
+            explorerRank: 'Novice',
+            mysteriesSolved: 0,
+            locationsExplored: 0,
+            reputationPoints: 0,
+            inventory: [],
+            currentEra: null,
+            currentLocation: null,
+            discoveredLocations: new Set(),
+            completedQuests: new Set()
         };
 
-        const questions = {
-            ancient: [
-                {
-                    question: "An Egyptian merchant offers you papyrus. What should you know about its value?",
-                    options: [
-                        "It was only used for decoration",
-                        "It was essential for writing and record-keeping",
-                        "It was worthless in ancient times",
-                        "It was only used by slaves"
-                    ],
-                    correct: 1,
-                    explanation: "Papyrus was incredibly valuable as the primary writing material!"
-                },
-                {
-                    question: "You're trading spices in ancient Egypt. Which route would be most profitable?",
-                    options: [
-                        "The Silk Road to China",
-                        "The Nile River trade route",
-                        "The Mediterranean Sea route",
-                        "Overland to Europe"
-                    ],
-                    correct: 1,
-                    explanation: "The Nile was Egypt's lifeline for trade and transportation!"
+        // Historical Scenarios Database
+        const historicalScenarios = {
+            'ancient-egypt': {
+                name: 'Ancient Egypt',
+                locations: {
+                    'pyramid-khufu': {
+                        name: 'Great Pyramid of Khufu',
+                        background: 'linear-gradient(to bottom, #DAA520, #CD853F)',
+                        scenario: {
+                            title: 'The Hidden Chamber',
+                            subtitle: 'Inside the Great Pyramid, 2580 BCE',
+                            narrative: 'You stand before the towering Great Pyramid of Khufu, one of the Seven Wonders of the Ancient World. Your temporal scanner detects an unknown chamber deep within the pyramid. Ancient Egyptian workers move massive limestone blocks while priests chant mysterious incantations. The air shimmers with temporal energy.',
+                            character: {
+                                avatar: '👨‍🎓',
+                                name: 'Imhotep the Architect',
+                                dialogue: 'Greetings, stranger from distant times. I sense you seek the Pharaoh\'s greatest secret. But beware - the pyramid\'s guardians do not welcome intruders. Choose your path wisely, for the gods are watching.'
+                            },
+                            choices: [
+                                {
+                                    text: '🔍 Use advanced scanning equipment to locate the hidden chamber',
+                                    type: 'success',
+                                    outcome: 'Your futuristic scanner reveals a secret passage! You discover the legendary Golden Scarab of Khufu.',
+                                    rewards: { energy: 200, artifact: 'golden-scarab', reputation: 50 }
+                                },
+                                {
+                                    text: '📜 Study hieroglyphic inscriptions for clues',
+                                    type: 'mystery',
+                                    outcome: 'The hieroglyphs reveal an ancient riddle. Solving it opens a hidden door to treasures beyond imagination.',
+                                    rewards: { energy: 150, artifact: 'hieroglyph-tablet', reputation: 30 }
+                                },
+                                {
+                                    text: '🏃 Follow the mysterious priest into the pyramid depths',
+                                    type: 'danger',
+                                    outcome: 'The priest leads you through deadly traps, but your quick thinking saves you. You gain his trust and ancient knowledge.',
+                                    rewards: { energy: 100, reputation: 75 }
+                                },
+                                {
+                                    text: '💰 Attempt to bribe the guards with future currency',
+                                    type: 'danger',
+                                    outcome: 'The guards are suspicious of your strange coins. You barely escape, but learn valuable information about pyramid security.',
+                                    rewards: { energy: -50, reputation: 10 }
+                                }
+                            ]
+                        }
+                    },
+                    'valley-of-kings': {
+                        name: 'Valley of the Kings',
+                        background: 'linear-gradient(to bottom, #D2691E, #A0522D)',
+                        scenario: {
+                            title: 'Tomb of the Lost Pharaoh',
+                            subtitle: 'Hidden Valley, 1323 BCE',
+                            narrative: 'You\'ve discovered an untouched tomb in the Valley of the Kings. Hieroglyphic warnings cover the entrance, and ancient curses promise doom to grave robbers. Your archaeological instincts tell you this could be the find of the millennium. Golden artifacts glint in your temporal scanner\'s light.',
+                            character: {
+                                avatar: '👸',
+                                name: 'Queen Ankhesenamun',
+                                dialogue: 'Traveler from tomorrow, you have found the resting place of my beloved husband. The tomb contains not just gold, but the wisdom of ages. Prove your worth, and the pharaoh\'s knowledge shall be yours.'
+                            },
+                            choices: [
+                                {
+                                    text: '🏺 Carefully excavate using proper archaeological techniques',
+                                    type: 'success',
+                                    outcome: 'Your methodical approach reveals perfectly preserved artifacts and ancient scrolls of unprecedented historical value.',
+                                    rewards: { energy: 300, artifact: 'pharaoh-crown', reputation: 100 }
+                                },
+                                {
+                                    text: '🔦 Use temporal light to reveal hidden passages',
+                                    type: 'mystery',
+                                    outcome: 'The temporal light reveals secret chambers filled with mystical artifacts that seem to pulse with otherworldly energy.',
+                                    rewards: { energy: 250, artifact: 'temporal-ankh', reputation: 80 }
+                                },
+                                {
+                                    text: '⚡ Activate emergency temporal beacon to call for backup',
+                                    type: 'danger',
+                                    outcome: 'Your beacon attracts temporal guardians who test your knowledge of Egyptian history before granting passage.',
+                                    rewards: { energy: 150, reputation: 60 }
+                                }
+                            ]
+                        }
+                    }
                 }
-            ],
-            medieval: [
-                {
-                    question: "A medieval guild master wants to trade. What should you know about guilds?",
-                    options: [
-                        "They were just social clubs",
-                        "They controlled craft production and trade",
-                        "They only existed in England",
-                        "They were run by the church"
-                    ],
-                    correct: 1,
-                    explanation: "Guilds controlled quality, prices, and trade in medieval cities!"
-                },
-                {
-                    question: "You're offering medicine during the Black Death. What was the most sought-after 'cure'?",
-                    options: [
-                        "Antibiotics",
-                        "Bloodletting and herbal remedies",
-                        "Surgery",
-                        "Vaccines"
-                    ],
-                    correct: 1,
-                    explanation: "Medieval medicine relied on bloodletting and herbs, though ineffective against the plague!"
+            },
+            'medieval': {
+                name: 'Medieval Europe',
+                locations: {
+                    'camelot': {
+                        name: 'Camelot Castle',
+                        background: 'linear-gradient(to bottom, #2F4F4F, #696969)',
+                        scenario: {
+                            title: 'The Round Table Quest',
+                            subtitle: 'Camelot, Arthurian Legend Era',
+                            narrative: 'You arrive at the legendary Camelot during King Arthur\'s reign. Knights in shining armor train in the courtyard while Merlin works his magic in the tower. The Round Table awaits those worthy of sitting among the greatest knights in history. Your quest: prove your honor and uncover the secrets of the Holy Grail.',
+                            character: {
+                                avatar: '🧙‍♂️',
+                                name: 'Merlin the Wizard',
+                                dialogue: 'Ah, a traveler from distant times! I have foreseen your arrival in my crystal visions. The Round Table seeks a new champion, but first you must prove your worth through trials of wisdom, courage, and honor. Choose your path carefully.'
+                            },
+                            choices: [
+                                {
+                                    text: '⚔️ Challenge Sir Lancelot to honorable combat',
+                                    type: 'danger',
+                                    outcome: 'Your unexpected fighting techniques impress Lancelot. He grants you a place at the Round Table and shares the location of Grail legends.',
+                                    rewards: { energy: 200, artifact: 'round-table-seal', reputation: 90 }
+                                },
+                                {
+                                    text: '🏆 Seek the Holy Grail through ancient riddles',
+                                    type: 'mystery',
+                                    outcome: 'Your temporal knowledge helps solve Merlin\'s riddles. You discover clues leading to the Grail\'s hidden location.',
+                                    rewards: { energy: 350, artifact: 'grail-map', reputation: 120 }
+                                },
+                                {
+                                    text: '📖 Study ancient texts in Merlin\'s library',
+                                    type: 'success',
+                                    outcome: 'The ancient texts reveal forgotten spells and historical secrets that will aid future expeditions.',
+                                    rewards: { energy: 180, artifact: 'merlin-scroll', reputation: 70 }
+                                }
+                            ]
+                        }
+                    }
                 }
-            ],
-            renaissance: [
-                {
-                    question: "A Renaissance artist wants to commission materials. What revolutionary technique are they likely using?",
-                    options: [
-                        "Abstract expressionism",
-                        "Linear perspective and oil painting",
-                        "Digital art",
-                        "Photography"
-                    ],
-                    correct: 1,
-                    explanation: "Renaissance artists pioneered perspective and oil painting techniques!"
-                },
-                {
-                    question: "An explorer needs navigation tools. What's the most valuable item you can offer?",
-                    options: [
-                        "GPS device",
-                        "Astrolabe and compass",
-                        "Paper maps only",
-                        "Telegraph"
-                    ],
-                    correct: 1,
-                    explanation: "Astrolabes and compasses revolutionized Renaissance navigation!"
-                }
-            ],
-            industrial: [
-                {
-                    question: "A factory owner wants to improve production. What should you recommend?",
-                    options: [
-                        "More workers",
-                        "Steam-powered machinery",
-                        "Computer automation",
-                        "Solar panels"
-                    ],
-                    correct: 1,
-                    explanation: "Steam power was the key to Industrial Revolution productivity!"
-                },
-                {
-                    question: "Workers are organizing. What new social movement is emerging?",
-                    options: [
-                        "Environmental activism",
-                        "Labor unions and workers' rights",
-                        "Space exploration",
-                        "Digital privacy"
-                    ],
-                    correct: 1,
-                    explanation: "The Industrial Revolution sparked the labor movement!"
-                }
-            ],
-            modern: [
-                {
-                    question: "It's 1969 and there's huge excitement. What historic event just happened?",
-                    options: [
-                        "Internet was invented",
-                        "Moon landing achieved",
-                        "Berlin Wall built",
-                        "World War II ended"
-                    ],
-                    correct: 1,
-                    explanation: "Apollo 11 moon landing was a defining moment of the Space Age!"
-                },
-                {
-                    question: "A tech company wants computing power. What's the most advanced option available?",
-                    options: [
-                        "Smartphones",
-                        "Room-sized mainframe computers",
-                        "Laptops",
-                        "Cloud computing"
-                    ],
-                    correct: 1,
-                    explanation: "Early computers filled entire rooms but were revolutionary for their time!"
-                }
-            ]
-        };
-
-        function updateStats() {
-            document.getElementById('coins').textContent = gameState.coins;
-            document.getElementById('trades').textContent = gameState.trades;
-            document.getElementById('level').textContent = gameState.level;
-            document.getElementById('knowledge').textContent = gameState.knowledge;
-        }
-
-        function createParticles() {
-            const particleContainer = document.getElementById('particles');
-            
-            setInterval(() => {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 2 + 's';
-                particle.style.animationDuration = (Math.random() * 3 + 7) + 's';
-                
-                particleContainer.appendChild(particle);
-                
-                setTimeout(() => {
-                    particle.remove();
-                }, 10000);
-            }, 500);
-        }
-
-        function enterPeriod(period) {
-            if (period === 'future' && gameState.knowledge < 10) {
-                alert('⏰ Future Timeline locked! Master all other eras first!');
-                return;
             }
+            // More eras and locations will be added dynamically
+        };
+
+        // Artifact Database
+        const artifacts = {
+            'golden-scarab': { icon: '🏺', name: 'Golden Scarab of Khufu', description: 'A mystical scarab that grants insight into ancient Egyptian mysteries' },
+            'hieroglyph-tablet': { icon: '📜', name: 'Sacred Hieroglyph Tablet', description: 'Contains the lost language of the pharaohs' },
+            'pharaoh-crown': { icon: '👑', name: 'Crown of the Lost Pharaoh', description: 'Radiates with the power of divine kingship' },
+            'temporal-ankh': { icon: '☥', name: 'Temporal Ankh', description: 'An ankh infused with time-bending properties' },
+            'round-table-seal': { icon: '🛡️', name: 'Round Table Seal', description: 'Symbol of honor and chivalry from Camelot' },
+            'grail-map': { icon: '🗺️', name: 'Holy Grail Map', description: 'Ancient map revealing the Grail\'s location' },
+            'merlin-scroll': { icon: '📋', name: 'Merlin\'s Wisdom Scroll', description: 'Contains powerful spells and ancient knowledge' }
+        };
+
+        // Initialize Game
+        function initializeGame() {
+            createStarField();
+            updateGameStats();
             
-            gameState.currentPeriod = period;
-            const tradingInterface = document.getElementById('tradingInterface');
-            tradingInterface.classList.add('active');
-            
-            loadQuestion(period);
+            // Hide loading screen after 3 seconds
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loadingScreen').style.display = 'none';
+                }, 500);
+            }, 3000);
         }
 
-        function loadQuestion(period) {
-            const periodQuestions = questions[period];
-            if (!periodQuestions) return;
+        function createStarField() {
+            const starsContainer = document.getElementById('stars');
+            const numStars = 150;
             
-            const randomQuestion = periodQuestions[Math.floor(Math.random() * periodQuestions.length)];
-            
-            document.getElementById('question').textContent = randomQuestion.question;
-            
-            const optionsContainer = document.getElementById('options');
-            optionsContainer.innerHTML = '';
-            
-            randomQuestion.options.forEach((option, index) => {
-                const button = document.createElement('button');
-                button.className = 'option';
-                button.textContent = option;
-                button.onclick = () => handleAnswer(index, randomQuestion.correct, randomQuestion.explanation);
-                optionsContainer.appendChild(button);
-            });
+            for (let i = 0; i < numStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                starsContainer.appendChild(star);
+            }
         }
 
-        function handleAnswer(selected, correct, explanation) {
-            const options = document.querySelectorAll('.option');
+        function activateChronoSphere() {
+            const messages = [
+                '⚡ Temporal engines online!',
+                '🌌 Reality fabric stabilized!',
+                '⏰ ChronoSphere fully charged!',
+                '🔮 Time streams synchronized!',
+                '🚀 Ready for dimensional travel!'
+            ];
             
-            options.forEach((option, index) => {
-                option.disabled = true;
-                if (index === correct) {
-                    option.classList.add('correct');
-                } else if (index === selected && selected !== correct) {
-                    option.classList.add('wrong');
-                }
-            });
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            
+            // Add special visual effect
+            const chronosphere = document.getElementById('chronosphere');
+            chronosphere.style.animation = 'chronoSpin 1s linear, chronoPulse 0.5s ease-in-out';
             
             setTimeout(() => {
-                if (selected === correct) {
-                    gameState.coins += 100;
-                    gameState.trades += 1;
-                    gameState.knowledge += 1;
-                    
-                    if (gameState.knowledge % 3 === 0) {
-                        gameState.level += 1;
+                chronosphere.style.animation = 'chronoSpin 12s linear infinite, chronoPulse 3s ease-in-out infinite';
+                alert(randomMessage);
+            }, 1000);
+        }
+
+        function updateGameStats() {
+            document.getElementById('temporalEnergy').textContent = gameState.temporalEnergy;
+            document.getElementById('artifactsFound').textContent = gameState.artifactsFound;
+            document.getElementById('explorerRank').textContent = gameState.explorerRank;
+            document.getElementById('mysteriesSolved').textContent = gameState.mysteriesSolved;
+            document.getElementById('locationsExplored').textContent = gameState.locationsExplored;
+            document.getElementById('reputationPoints').textContent = gameState.reputationPoints;
+            
+            // Update explorer rank based on reputation
+            if (gameState.reputationPoints >= 500) {
+                gameState.explorerRank = 'Master Explorer';
+            } else if (gameState.reputationPoints >= 300) {
+                gameState.explorerRank = 'Expert Archaeologist';
+            } else if (gameState.reputationPoints >= 150) {
+                gameState.explorerRank = 'Skilled Adventurer';
+            } else if (gameState.reputationPoints >= 50) {
+                gameState.explorerRank = 'Apprentice Hunter';
+            }
+            
+            updateInventoryDisplay();
+        }
+
+        function updateInventoryDisplay() {
+            const inventoryContainer = document.getElementById('inventoryItems');
+            inventoryContainer.innerHTML = '';
+            
+            gameState.inventory.forEach(artifactId => {
+                const artifact = artifacts[artifactId];
+                if (artifact) {
+                    const item = document.createElement('div');
+                    item.className = 'inventory-item';
+                    item.innerHTML = artifact.icon;
+                    item.title = `${artifact.name}: ${artifact.description}`;
+                    inventoryContainer.appendChild(item);
+                }
+            });
+            
+            // Fill empty slots
+            for (let i = gameState.inventory.length; i < 9; i++) {
+                const emptySlot = document.createElement('div');
+                emptySlot.className = 'inventory-item';
+                emptySlot.innerHTML = '📦';
+                emptySlot.style.opacity = '0.3';
+                inventoryContainer.appendChild(emptySlot);
+            }
+        }
+
+        function enterEra(eraId) {
+            const era = historicalScenarios[eraId];
+            if (!era) return;
+            
+            gameState.currentEra = eraId;
+            
+            // Get first available location
+            const locationIds = Object.keys(era.locations);
+            if (locationIds.length === 0) return;
+            
+            const locationId = locationIds[0];
+            exploreLocation(eraId, locationId);
+        }
+
+        function exploreLocation(eraId, locationId) {
+            const era = historicalScenarios[eraId];
+            const location = era.locations[locationId];
+            
+            if (!location) return;
+            
+            gameState.currentLocation = locationId;
+            
+            // Show exploration interface
+            const explorationInterface = document.getElementById('explorationInterface');
+            explorationInterface.classList.add('active');
+            
+            // Set scene
+            document.getElementById('sceneBackdrop').style.background = location.background;
+            document.getElementById('sceneTitle').textContent = location.scenario.title;
+            document.getElementById('sceneSubtitle').textContent = location.scenario.subtitle;
+            document.getElementById('narrativeText').textContent = location.scenario.narrative;
+            
+            // Set character dialogue
+            const character = location.scenario.character;
+            document.getElementById('characterDialogue').style.display = 'flex';
+            document.getElementById('characterAvatar').textContent = character.avatar;
+            document.getElementById('characterName').textContent = character.name;
+            document.getElementById('characterSpeech').textContent = character.dialogue;
+            
+            // Create choices
+            const choicesContainer = document.getElementById('explorationChoices');
+            choicesContainer.innerHTML = '';
+            
+            location.scenario.choices.forEach((choice, index) => {
+                const button = document.createElement('button');
+                button.className = `choice-button ${choice.type}`;
+                button.innerHTML = `
+                    <strong>${choice.text}</strong>
+                `;
+                button.onclick = () => makeChoice(choice, location.name);
+                choicesContainer.appendChild(button);
+            });
+            
+            // Track location visit
+            if (!gameState.discoveredLocations.has(locationId)) {
+                gameState.discoveredLocations.add(locationId);
+                gameState.locationsExplored++;
+            }
+        }
+
+        function makeChoice(choice, locationName) {
+            // Disable all choice buttons
+            const choiceButtons = document.querySelectorAll('.choice-button');
+            choiceButtons.forEach(button => {
+                button.disabled = true;
+                button.style.opacity = '0.6';
+            });
+            
+            // Show outcome
+            setTimeout(() => {
+                // Update narrative text with outcome
+                document.getElementById('narrativeText').textContent = choice.outcome;
+                
+                // Apply rewards
+                if (choice.rewards) {
+                    if (choice.rewards.energy) {
+                        gameState.temporalEnergy += choice.rewards.energy;
+                    }
+                    if (choice.rewards.artifact) {
+                        gameState.inventory.push(choice.rewards.artifact);
+                        gameState.artifactsFound++;
+                        showArtifactDiscovery(choice.rewards.artifact);
+                    }
+                    if (choice.rewards.reputation) {
+                        gameState.reputationPoints += choice.rewards.reputation;
                     }
                     
-                    showSuccessMessage();
-                    updateStats();
-                } else {
-                    alert(`❌ Incorrect! ${explanation}\nTry again to master this era!`);
+                    gameState.mysteriesSolved++;
                 }
                 
+                updateGameStats();
+                
+                // Auto-close interface after 5 seconds
                 setTimeout(() => {
-                    document.getElementById('tradingInterface').classList.remove('active');
-                }, 2000);
+                    document.getElementById('explorationInterface').classList.remove('active');
+                }, 5000);
+                
             }, 1500);
         }
 
-        function showSuccessMessage() {
-            const message = document.getElementById('successMessage');
-            message.style.display = 'block';
+        function showArtifactDiscovery(artifactId) {
+            const artifact = artifacts[artifactId];
+            if (!artifact) return;
+            
+            const discoveryPanel = document.getElementById('artifactDiscovery');
+            document.getElementById('artifactIcon').textContent = artifact.icon;
+            document.getElementById('artifactName').textContent = artifact.name;
+            document.getElementById('artifactDescription').textContent = artifact.description;
+            
+            discoveryPanel.style.display = 'block';
             
             setTimeout(() => {
-                message.style.display = 'none';
-            }, 2000);
+                discoveryPanel.style.display = 'none';
+            }, 4000);
         }
 
-        // Initialize the game
-        document.addEventListener('DOMContentLoaded', () => {
-            createParticles();
-            updateStats();
-            
-            // Add click effect to ChronoSphere
-            document.getElementById('chronosphere').addEventListener('click', () => {
-                const phrases = [
-                    "⏰ Time streams are stable...",
-                    "🌌 Temporal coordinates locked!",
-                    "⚡ ChronoSphere energy: 100%",
-                    "🚀 Ready for time travel!",
-                    "🔮 Historical knowledge is power!"
-                ];
-                
-                alert(phrases[Math.floor(Math.random() * phrases.length)]);
-            });
-        });
+        // Initialize the game when page loads
+        document.addEventListener('DOMContentLoaded', initializeGame);
     </script>
 </body>
 </html>
